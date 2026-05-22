@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FrontWave Map</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: system-ui, sans-serif;
+      overflow: hidden;
+      height: 100vh;
+    }
+
+    #map-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      cursor: crosshair;
+    }
+
+    /* Mode buttons — top left */
+    #mode-buttons {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      display: flex;
+      gap: 6px;
+      z-index: 10;
+    }
+
+    .mode-btn {
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: 1px solid #475569;
+      background: rgba(15, 23, 42, 0.85);
+      color: #94a3b8;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .mode-btn:hover {
+      background: rgba(51, 65, 85, 0.9);
+      color: #e2e8f0;
+    }
+
+    .mode-btn.active {
+      border-color: #facc15;
+      background: rgba(234, 179, 8, 0.15);
+      color: #fde047;
+    }
+
+    /* Info panel — right side */
+    #info-panel {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 200px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 14px;
+      z-index: 10;
+      display: none;
+    }
+
+    #info-panel h3 {
+      font-size: 13px;
+      color: #64748b;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    #info-name {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    #info-country {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    /* Tooltip — bottom of cursor */
+    #tooltip {
+      position: fixed;
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid #334155;
+      border-radius: 5px;
+      padding: 5px 10px;
+      font-size: 13px;
+      pointer-events: none;
+      display: none;
+      z-index: 100;
+      white-space: nowrap;
+    }
+
+    /* Loading overlay */
+    #loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: #94a3b8;
+      z-index: 20;
+      background: #0f172a;
+    }
+  </style>
+</head>
+<body>
+  <div id="map-container">
+    <canvas id="map" width="1920" height="1080"></canvas>
+
+    <div id="mode-buttons">
+      <button class="mode-btn active" data-mode="political">政治図</button>
+      <button class="mode-btn" data-mode="province">州図</button>
+    </div>
+
+    <div id="info-panel">
+      <h3>選択中の州</h3>
+      <div id="info-name">—</div>
+      <div id="info-country">—</div>
+    </div>
+
+    <div id="loading">地図を読み込み中…</div>
+  </div>
+
+  <div id="tooltip"></div>
+
+  <script src="https://unpkg.com/d3@7/dist/d3.min.js"></script>
+  <script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

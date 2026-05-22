@@ -1,0 +1,13 @@
+{
+  "name": "frontwave",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "pnpm --filter frontwave-engine build",
+    "dev": "pnpm --filter frontwave-engine dev",
+    "typecheck": "pnpm --filter frontwave-engine typecheck"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
