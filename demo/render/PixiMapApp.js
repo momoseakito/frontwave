@@ -18,6 +18,7 @@ import { ProvinceLayer } from "./ProvinceLayer.js";
 import { BorderLayer } from "./BorderLayer.js";
 import { HighlightLayer } from "./HighlightLayer.js";
 import { AttackLayer } from "./AttackLayer.js";
+import { ArrowLayer } from "./ArrowLayer.js";
 
 const SEA_COLOR = 0x0f172a;
 
@@ -40,6 +41,7 @@ export class PixiMapApp {
     this._borders = null;
     this._highlight = null;
     this._attack = null;
+    this._arrows = null;
     this._initPromise = null;
     this._resolution = options.resolution ?? (window.devicePixelRatio || 1);
   }
@@ -68,10 +70,12 @@ export class PixiMapApp {
       this._borders = new BorderLayer(PIXI, this.data);
       this._highlight = new HighlightLayer(PIXI, this.data);
       this._attack = new AttackLayer(PIXI, this.data);
+      this._arrows = new ArrowLayer(PIXI, this.data);
       this._world.addChild(this._provinces.container);
       this._world.addChild(this._borders.container);
       this._world.addChild(this._highlight.container);
       this._world.addChild(this._attack.container);
+      this._world.addChild(this._arrows.container);
 
       this._provinces.refreshFills();
       this._syncWorld();
@@ -114,6 +118,16 @@ export class PixiMapApp {
     return changed;
   }
 
+  // Tick driver supplies the current arrow list (source/target/color).
+  setArrows(items) {
+    const changed = this._arrows?.setArrows(items) ?? false;
+    if (changed) {
+      this.dirty = true;
+      this._kick?.();
+    }
+    return changed;
+  }
+
   // When attacks are in progress we keep ticking frames for the pulse anim.
   hasAttackAnimation() {
     return this._attack?.hasActive() ?? false;
@@ -146,6 +160,7 @@ export class PixiMapApp {
     this._highlight.syncToScale(c.scale);
     this._highlight.setSelected(this.state.selectedProvince);
     this._attack.syncToScale(c.scale);
+    this._arrows.syncToScale(c.scale);
   }
 
   _render() {

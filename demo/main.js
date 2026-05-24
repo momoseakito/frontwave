@@ -29,14 +29,33 @@ const tooltip = document.getElementById("tooltip");
 const infoPanel = document.getElementById("info-panel");
 const infoName = document.getElementById("info-name");
 const infoCountry = document.getElementById("info-country");
+const infoTroops = document.getElementById("info-troops");
+const infoTroopsBar = document.getElementById("info-troops-bar");
+const infoTerrain = document.getElementById("info-terrain");
+const infoIndustry = document.getElementById("info-industry");
+const infoNeighbors = document.getElementById("info-neighbors");
+const infoUpgrade = document.getElementById("info-upgrade");
+const infoUpgradeRemain = document.getElementById("info-upgrade-remain");
+const infoUpgradeBar = document.getElementById("info-upgrade-bar");
+const infoAttack = document.getElementById("info-attack");
+const infoAttacker = document.getElementById("info-attacker");
 const hud = document.getElementById("hud");
 const victoryEl = document.getElementById("victory");
 const victoryWinner = document.getElementById("victory-winner");
 const victoryMsg = document.getElementById("victory-msg");
 
-const gameState = new GameState();
+const TERRAIN_JP = {
+  plains: "平原",
+  mountains: "山岳",
+  coast: "沿岸",
+  forest: "森林",
+  capital: "首都",
+};
+
 const camera = new Camera(WORLD_W, WORLD_H);
+let gameState = null;   // chosen after start-screen
 let app = null;
+const PLAYABLE_NATIONS = ["emp", "kgd", "rep", "hol", "fed", "dch"];
 
 function focusBounds(mapData, nationIds) {
   const set = new Set(nationIds);
@@ -86,17 +105,51 @@ function onHover(rec, screenPos) {
   tooltip.textContent = `${rec.name}（${ownerName}）`;
 }
 
+function refreshInfoPanel() {
+  const fid = gameState.selectedProvince;
+  if (fid == null) {
+    infoPanel.style.display = "none";
+    return;
+  }
+  const info = gameState.getProvinceInfo(fid);
+  if (!info) {
+    infoPanel.style.display = "none";
+    return;
+  }
+  infoName.textContent = info.name;
+  infoCountry.textContent = gameState.getCountryName(info.ownerId);
+  infoCountry.style.color = gameState.getCountryColorHex(info.ownerId);
+  infoTroops.textContent = `${info.troops} / ${info.maxTroops}`;
+  infoTroopsBar.style.width = `${Math.min(100, (info.troops / info.maxTroops) * 100)}%`;
+  infoTerrain.textContent = TERRAIN_JP[info.terrain] ?? info.terrain;
+  infoIndustry.textContent = `Lv. ${info.industryLevel}${info.isCapital ? " (首都)" : ""}`;
+  infoNeighbors.textContent = `${info.neighborCount}`;
+
+  if (info.upgradeInProgress) {
+    infoUpgrade.style.display = "block";
+    infoUpgradeRemain.textContent = info.upgradeRemain.toFixed(0);
+    // Progress is hard to compute without the original duration; fall back to
+    // a coarse "less remaining = fuller bar" with an arbitrary 300s ceiling.
+    const pct = Math.max(0, Math.min(100, (1 - info.upgradeRemain / 300) * 100));
+    infoUpgradeBar.style.width = `${pct}%`;
+  } else {
+    infoUpgrade.style.display = "none";
+  }
+
+  if (info.underAttack && info.attackerId) {
+    infoAttack.style.display = "block";
+    infoAttacker.textContent = gameState.getCountryName(info.attackerId);
+    infoAttacker.style.color = gameState.getCountryColorHex(info.attackerId);
+  } else {
+    infoAttack.style.display = "none";
+  }
+
+  infoPanel.style.display = "block";
+}
+
 function onClick(rec) {
   gameState.selectProvince(rec?.id ?? null);
-  if (gameState.selectedProvince != null && rec) {
-    const ownerId = gameState.getOwner(rec.id);
-    infoName.textContent = rec.name;
-    infoCountry.textContent = gameState.getCountryName(ownerId);
-    infoCountry.style.color = gameState.getCountryColorHex(ownerId);
-    infoPanel.style.display = "block";
-  } else {
-    infoPanel.style.display = "none";
-  }
+  refreshInfoPanel();
   app.requestFrame();
 }
 
@@ -145,6 +198,13 @@ window.addEventListener("resize", () => {
   app?.requestFrame();
 });
 
+function hexStringToNumber(hex) {
+  if (typeof hex !== "string") return 0x64748b;
+  const s = hex.startsWith("#") ? hex.slice(1) : hex;
+  const n = parseInt(s, 16);
+  return Number.isFinite(n) ? n : 0x64748b;
+}
+
 function formatElapsed(seconds) {
   const s = Math.floor(seconds);
   const mm = String(Math.floor(s / 60)).padStart(2, "0");
@@ -153,11 +213,13 @@ function formatElapsed(seconds) {
 }
 
 function updateHUD() {
-  const elapsed = gameState.engine?.elapsedSeconds ?? 0;
-  hud.textContent = `t=${formatElapsed(elapsed)}  scale=${camera.scale.toFixed(2)}x  frame=${app.lastFrameMs.toFixed(1)}ms`;
+  const elapsed = gameState?.engine?.elapsedSeconds ?? 0;
+  const frameMs = app?.lastFrameMs ?? 0;
+  hud.textContent = `t=${formatElapsed(elapsed)}  scale=${camera.scale.toFixed(2)}x  frame=${frameMs.toFixed(1)}ms`;
 }
 
-async function init() {
+async function init(playerNationId) {
+  document.getElementById("loading").style.display = "flex";
   const [, geoJSON] = await Promise.all([
     loadNationDefs(),
     fetch(GEOJSON_URL).then((r) => {
@@ -167,6 +229,7 @@ async function init() {
   ]);
   const projection = createEuropeProjection(geoJSON, WORLD_W, WORLD_H);
   const mapData = buildMapData(geoJSON, projection, WORLD_W, WORLD_H);
+  gameState = new GameState(playerNationId);
   gameState.initFromGeoJSON(geoJSON);
   const hitTester = new HitTester(mapData);
 
@@ -193,6 +256,23 @@ async function init() {
       }
       app.setUnderAttack(ids);
 
+      const arrows = [];
+      for (const atk of next.ongoingAttacks) {
+        const sFid = gameState.stateIdToFeatureId.get(atk.sourceStateId);
+        const tFid = gameState.stateIdToFeatureId.get(atk.targetStateId);
+        if (sFid == null || tFid == null) continue;
+        const hex = gameState.getCountryColorHex(atk.attackerId);
+        arrows.push({
+          sourceFeatureId: sFid,
+          targetFeatureId: tFid,
+          color: hexStringToNumber(hex),
+        });
+      }
+      app.setArrows(arrows);
+
+      // Selected province's troops / upgrade / attacker can change every tick.
+      if (gameState.selectedProvince != null) refreshInfoPanel();
+
       if (next.phase === "finished" && prev.phase !== "finished") {
         const winnerName = next.winner
           ? gameState.getCountryName(next.winner)
@@ -217,7 +297,34 @@ async function init() {
   document.getElementById("loading").style.display = "none";
 }
 
-init().catch((err) => {
+async function showStartScreen() {
+  // nation-defs.json is the canonical name/color source; load early so the
+  // start screen can render buttons without instantiating GameState yet.
+  const defs = await loadNationDefs();
+  const grid = document.getElementById("nation-grid");
+  for (const id of PLAYABLE_NATIONS) {
+    const d = defs[id];
+    if (!d) continue;
+    const btn = document.createElement("button");
+    btn.className = "nation-btn";
+    btn.style.borderColor = d.color;
+    btn.innerHTML = `
+      <div class="swatch" style="background:${d.color}"></div>
+      <div class="nm">${d.name}</div>
+      <div class="id">${id}</div>
+    `;
+    btn.addEventListener("click", () => {
+      document.getElementById("start-screen").style.display = "none";
+      init(id).catch((err) => {
+        console.error(err);
+        document.getElementById("loading").textContent = `エラー: ${err.message}`;
+      });
+    });
+    grid.appendChild(btn);
+  }
+}
+
+showStartScreen().catch((err) => {
   console.error(err);
-  document.getElementById("loading").textContent = `エラー: ${err.message}`;
+  document.getElementById("start-screen").innerHTML = `<p style="color:#f87171">エラー: ${err.message}</p>`;
 });

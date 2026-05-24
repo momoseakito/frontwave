@@ -6,6 +6,7 @@
 import {
   createInitialState,
   executeAttack,
+  getMaxTroops,
   STATE_DEF_MAP,
   NATION_DEF_MAP,
 } from "../packages/game-engine/dist/index.js";
@@ -80,6 +81,37 @@ export class GameState {
   // Current player's nation id (used by command/attack code in later stages).
   getPlayerNationId() {
     return this.engine.playerNationId;
+  }
+
+  // Snapshot of everything the info panel cares about for a given feature.
+  // Returns null if the feature has no engine state binding.
+  getProvinceInfo(featureId) {
+    const sid = this.featureIdToStateId.get(featureId);
+    if (!sid) return null;
+    const s = this.engine.states[sid];
+    const def = STATE_DEF_MAP[sid];
+    if (!s || !def) return null;
+    const isCapital = def.capitalOf !== undefined;
+    const terrain = isCapital ? "capital" : def.terrain;
+    const max = getMaxTroops(s.industryLevel, isCapital);
+    const upgradeRemain = s.upgradeInProgress
+      ? Math.max(0, s.upgradeCompletesAt - this.engine.elapsedSeconds)
+      : 0;
+    return {
+      stateId: sid,
+      name: def.name,
+      ownerId: s.ownerId,
+      troops: Math.floor(s.troops),
+      maxTroops: max,
+      terrain,
+      isCapital,
+      industryLevel: s.industryLevel,
+      neighborCount: def.neighbors.length,
+      underAttack: s.underAttack,
+      attackerId: s.attackerId,
+      upgradeInProgress: s.upgradeInProgress,
+      upgradeRemain,
+    };
   }
 
   // Issue an attack from one feature to another. Returns true if the engine
