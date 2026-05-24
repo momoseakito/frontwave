@@ -5,15 +5,17 @@ import {
   STATE_DEF_MAP,
 } from "./map.js";
 import {
-  TIMER_LIMIT,
+  CASUAL_TIMER_DEFAULT,
   INITIAL_FUNDS,
   INITIAL_TROOPS_BY_TERRAIN,
-  INVEST_COSTS,
-  MAX_TROOPS,
+  UPGRADE_COSTS,
+  TROOP_MAX_BY_LEVEL,
+  CAPITAL_BONUS_MULTIPLIER,
   PEACE_PERIOD_SECONDS,
   type Terrain,
 } from "./constants.js";
 import { getRelationStatus, isDiplomaticPair } from "./diplomacy.js";
+import { canCrossStrait } from "./sealanes.js";
 
 // ---- State (province equivalent) ----
 
@@ -25,6 +27,8 @@ export interface StateStatus {
   underAttack: boolean;
   attackerId: string | null;
   neutralizedUntil: number;
+  upgradeInProgress: boolean;
+  upgradeCompletesAt: number;
 }
 
 // ---- Nation ----
@@ -77,7 +81,15 @@ export type ActiveEffect =
   | { type: "fortify"; stateId: string; expiresAt: number; multiplier: number }
   | { type: "terrain_override"; stateId: string; expiresAt: number; terrain: Terrain }
   | { type: "mobilization"; nationId: string; expiresAt: number; bonus: number }
-  | { type: "blitzkrieg"; nationId: string; usesLeft: number };
+  | { type: "blitzkrieg"; nationId: string; usesLeft: number }
+  | { type: "attack_boost"; nationId: string; expiresAt: number; multiplier: number }
+  | { type: "terrain_upgrade"; stateId: string; permanentTerrain: Terrain }
+  | { type: "economic_blockade"; nationId: string; expiresAt: number }
+  | { type: "strait_crossing_enabled"; nationId: string; expiresAt: number }
+  | { type: "alliance_break_penalty"; nationId: string; expiresAt: number }
+  | { type: "poison_dot"; stateId: string; expiresAt: number; dpsPerSecond: number }
+  | { type: "holy_defense_trigger"; stateId: string; expiresAt: number }
+  | { type: "chaos"; targetNationId: string; expiresAt: number };
 
 // ---- Top-level Game State ----
 
@@ -88,6 +100,7 @@ export interface GameState {
 
   elapsedSeconds: number;
   timerLimit: number;
+  gameMode: "casual" | "strategy";
   lastAiTick: number;
   lastCardDraw: number;
 
@@ -96,6 +109,8 @@ export interface GameState {
   winner: string | null;
 
   playerHand: CardInstance[];
+  cardDraftPending: boolean;
+  cardDraftChoices: CardInstance[];
   activeEffects: ActiveEffect[];
   playerFunds: number;
 
@@ -105,6 +120,13 @@ export interface GameState {
 
   selectedStateId: string | null;
   eventLog: string[];
+}
+
+// ---- Helper ----
+
+export function getMaxTroops(industryLevel: number, isCapital: boolean): number {
+  const base = TROOP_MAX_BY_LEVEL[Math.min(industryLevel, 5) as 0 | 1 | 2 | 3 | 4 | 5] ?? TROOP_MAX_BY_LEVEL[0];
+  return isCapital ? Math.floor(base * CAPITAL_BONUS_MULTIPLIER) : base;
 }
 
 // ---- Initial State Creation ----
@@ -137,20 +159,28 @@ function buildNationStates(
   return nations;
 }
 
-export function createInitialState(playerNationId: string): GameState {
+export function createInitialState(
+  playerNationId: string,
+  gameMode: "casual" | "strategy" = "casual",
+  timerLimit?: number
+): GameState {
   const states: Record<string, StateStatus> = {};
 
   for (const def of STATES_DEF) {
     const ownerId = INITIAL_STATE_OWNERS[def.id] ?? "neutral";
     const terrain = (def.capitalOf ? "capital" : def.terrain) as Terrain;
+    const isCapital = terrain === "capital";
+    const industryLevel = isCapital ? 3 : terrain === "mountains" ? 2 : 1;
     states[def.id] = {
       stateId: def.id,
       ownerId,
       troops: INITIAL_TROOPS_BY_TERRAIN[terrain],
-      industryLevel: terrain === "capital" ? 3 : terrain === "mountains" ? 2 : 1,
+      industryLevel,
       underAttack: false,
       attackerId: null,
       neutralizedUntil: 0,
+      upgradeInProgress: false,
+      upgradeCompletesAt: 0,
     };
   }
 
@@ -161,13 +191,16 @@ export function createInitialState(playerNationId: string): GameState {
     nations,
     ongoingAttacks: [],
     elapsedSeconds: 0,
-    timerLimit: TIMER_LIMIT,
+    timerLimit: timerLimit ?? CASUAL_TIMER_DEFAULT,
+    gameMode,
     lastAiTick: 0,
     lastCardDraw: 0,
     phase: "playing",
     playerNationId,
     winner: null,
     playerHand: [],
+    cardDraftPending: false,
+    cardDraftChoices: [],
     activeEffects: [],
     playerFunds: INITIAL_FUNDS,
     diplomaticRelations: {},
@@ -219,8 +252,9 @@ export function executeAttack(
   if (target.ownerId === game.playerNationId) return game;
   if (source.troops < 20) return game;
 
-  // 厳格モード: 他国に攻撃するには戦争状態が必須
+  // 戦争状態が必須
   if (
+    target.ownerId !== "neutral" &&
     isDiplomaticPair(game.playerNationId, target.ownerId) &&
     getRelationStatus(game, game.playerNationId, target.ownerId) !== "war"
   ) {
@@ -228,7 +262,9 @@ export function executeAttack(
   }
 
   const sourceDef = STATE_DEF_MAP[sourceStateId];
-  if (!sourceDef?.neighbors.includes(targetStateId)) return game;
+  const isAdjacent = sourceDef?.neighbors.includes(targetStateId) ?? false;
+  const isStraitCrossing = canCrossStrait(game, game.playerNationId, sourceStateId, targetStateId);
+  if (!isAdjacent && !isStraitCrossing) return game;
 
   const alreadyAttacking = game.ongoingAttacks.some(
     (a) => a.targetStateId === targetStateId
@@ -275,7 +311,7 @@ export function transferTroops(
   const to = game.states[toStateId];
   if (!from || !to) return game;
   if (from.ownerId !== game.playerNationId) return game;
-  // 受領先は自国 or 同盟国の州
+
   const isOwnState = to.ownerId === game.playerNationId;
   const isAllyState =
     isDiplomaticPair(game.playerNationId, to.ownerId) &&
@@ -288,32 +324,61 @@ export function transferTroops(
   const actualAmount = Math.min(amount, Math.floor(from.troops) - 1);
   if (actualAmount <= 0) return game;
 
+  const toDef = STATE_DEF_MAP[toStateId];
+  const toIsCapital = toDef?.capitalOf !== undefined;
+  const maxTo = getMaxTroops(to.industryLevel, toIsCapital);
+
   return {
     ...game,
     states: {
       ...game.states,
       [fromStateId]: { ...from, troops: from.troops - actualAmount },
-      [toStateId]: { ...to, troops: Math.min(to.troops + actualAmount, MAX_TROOPS) },
+      [toStateId]: { ...to, troops: Math.min(to.troops + actualAmount, maxTo) },
     },
   };
 }
 
-export function executeInvest(game: GameState, stateId: string): GameState {
+export function startUpgrade(game: GameState, stateId: string): GameState {
   const state = game.states[stateId];
   if (!state) return game;
   if (state.ownerId !== game.playerNationId) return game;
   if (state.industryLevel >= 5) return game;
+  if (state.upgradeInProgress) return game;
 
   const nextLevel = state.industryLevel + 1;
-  const cost = INVEST_COSTS[nextLevel] as number;
-  if (game.playerFunds < cost) return game;
+  const [goldCost, timeSec] = UPGRADE_COSTS[nextLevel - 1]!;
+  if (game.playerFunds < goldCost) return game;
 
   return {
     ...game,
-    playerFunds: game.playerFunds - cost,
+    playerFunds: game.playerFunds - goldCost,
     states: {
       ...game.states,
-      [stateId]: { ...state, industryLevel: nextLevel },
+      [stateId]: {
+        ...state,
+        upgradeInProgress: true,
+        upgradeCompletesAt: game.elapsedSeconds + timeSec,
+      },
     },
   };
+}
+
+// 降伏処理: 降伏国の全州を中立化し isAlive = false
+export function triggerNationSurrender(
+  game: GameState,
+  surrenderedNationId: string,
+  captorNationId: string
+): GameState {
+  const states = { ...game.states };
+  for (const [id, s] of Object.entries(states)) {
+    if (s.ownerId === surrenderedNationId) {
+      states[id] = { ...s, ownerId: captorNationId };
+    }
+  }
+
+  const log = [...game.eventLog, `${surrenderedNationId} が降伏しました`];
+  let g: GameState = { ...game, states, eventLog: log };
+  const { rebuildNations: _rebuild } = { rebuildNations };
+  g = rebuildNations(g);
+  return g;
 }

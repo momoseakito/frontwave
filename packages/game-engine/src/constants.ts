@@ -3,12 +3,12 @@ export type Terrain = "plains" | "mountains" | "coast" | "forest" | "capital";
 export const TICK_MS = 100;
 export const DELTA_SECONDS = TICK_MS / 1000;
 
-export const ATTACKER_PENALTY = 0.75;
+// 戦闘係数（ランチェスターの法則）
+export const ATTACKER_COEFFICIENT = 0.1;
+export const DEFENDER_COEFFICIENT = 1.3; // 1.1〜1.5 の中央値（バランス調整予定）
+export const CAPITAL_TROOP_MULTIPLIER = 2.0; // 首都攻略に必要な敵兵力比率
 
-// 戦闘DPSのスケール係数。小さいほど戦闘が長引く
-// 60兵力平野同士で約90秒かかる設定
-export const COMBAT_DPS_SCALE = 0.08;
-
+// 地形防衛倍率
 export const TERRAIN_DEFENSE: Record<Terrain, number> = {
   plains: 1.0,
   forest: 1.2,
@@ -17,34 +17,47 @@ export const TERRAIN_DEFENSE: Record<Terrain, number> = {
   capital: 2.0,
 };
 
-export const TROOP_REGEN_BASE = 1.5;
-export const TROOP_REGEN_PER_LEVEL = 0.8;
-export const MAX_TROOPS = 500;
+// 兵力生産テーブル（Lv 0〜5）
+export const TROOP_REGEN_BY_LEVEL = [1, 2, 4, 7, 11, 16] as const;
+export const TROOP_MAX_BY_LEVEL = [1000, 1800, 2800, 4000, 5500, 7500] as const;
+export const CAPITAL_BONUS_MULTIPLIER = 1.5; // 首都の生産・上限 +50%
 
-export const INVEST_COSTS = [0, 0, 100, 250, 500, 1000] as const;
+// ゴールド収入テーブル（Lv 0〜5）
+export const GOLD_INCOME_BY_LEVEL = [1, 2, 3, 5, 8, 12] as const;
 
-export const CARD_DRAW_INTERVAL = 30;
-export const TIMER_LIMIT = 600;
-export const HAND_SIZE = 3;
+// 州開発コスト [goldCost, timeSec]（Lv 1〜5）
+export const UPGRADE_COSTS: [number, number][] = [
+  [100, 30],
+  [250, 60],
+  [500, 120],
+  [900, 210],
+  [1500, 300],
+];
 
-export const INITIAL_FUNDS = 80;
-export const FUNDS_PER_STATE_PER_SECOND = 0.4;
+// カードシステム
+export const CARD_DRAW_INTERVAL = 60; // 1分ごとにドラフト
+export const HAND_SIZE = 5;           // 手札上限
+export const DRAFT_CHOICES = 3;       // ドラフト提示枚数
 
+// ゲームモード
+export const CASUAL_TIMER_DEFAULT = 1200; // 20分（カジュアルモードデフォルト）
+
+// 同盟
+export const MAX_ALLIANCES = 2;
+export const ALLIANCE_BREAK_PENALTY_SEC = 180; // 3分
+export const ALLIANCE_BREAK_ATTACK_MULT = 0.7; // 攻撃力 -30%
+
+// その他
+export const INITIAL_FUNDS = 200;
 export const AI_TICK_INTERVAL = 2;
-
-// 序盤の不可侵期間（秒）。開始からこの秒数までは宣戦布告・同盟提案不可
 export const PEACE_PERIOD_SECONDS = 30;
-
-// 同盟提案の有効期限（秒）。これを超えると自動で消滅
 export const ALLIANCE_PROPOSAL_TTL = 20;
-
-// AIの宣戦布告判定の間隔（秒）。各AIはこの間隔で1回判定
 export const AI_WAR_DECISION_INTERVAL = 8;
 
 export const INITIAL_TROOPS_BY_TERRAIN: Record<Terrain, number> = {
-  plains: 30,
-  mountains: 45,
-  coast: 25,
-  forest: 35,
-  capital: 60,
+  plains: 200,
+  mountains: 300,
+  coast: 150,
+  forest: 250,
+  capital: 500,
 };

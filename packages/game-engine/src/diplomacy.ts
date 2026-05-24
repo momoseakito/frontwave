@@ -1,7 +1,12 @@
-import type { GameState, DiplomaticStatus, AllianceProposal } from "./game.js";
+import type { GameState, DiplomaticStatus, AllianceProposal, ActiveEffect } from "./game.js";
 import { NATION_DEF_MAP } from "./map.js";
 import { addEvent } from "./events.js";
-import { PEACE_PERIOD_SECONDS, ALLIANCE_PROPOSAL_TTL } from "./constants.js";
+import {
+  PEACE_PERIOD_SECONDS,
+  ALLIANCE_PROPOSAL_TTL,
+  MAX_ALLIANCES,
+  ALLIANCE_BREAK_PENALTY_SEC,
+} from "./constants.js";
 
 export function relationKey(a: string, b: string): string {
   return a < b ? `${a}:${b}` : `${b}:${a}`;
@@ -28,6 +33,12 @@ export function isPeacePeriod(game: GameState): boolean {
   return game.elapsedSeconds < PEACE_PERIOD_SECONDS;
 }
 
+function countAlliances(game: GameState, nationId: string): number {
+  return Object.values(game.diplomaticRelations).filter(
+    (r) => r.status === "ally" && (r.nationA === nationId || r.nationB === nationId)
+  ).length;
+}
+
 function setRelation(
   game: GameState,
   a: string,
@@ -45,6 +56,18 @@ function setRelation(
   };
 }
 
+function applyAllianceBreakPenalty(game: GameState, nationId: string): GameState {
+  const penalty: ActiveEffect = {
+    type: "alliance_break_penalty",
+    nationId,
+    expiresAt: game.elapsedSeconds + ALLIANCE_BREAK_PENALTY_SEC,
+  };
+  return {
+    ...game,
+    activeEffects: [...game.activeEffects, penalty],
+  };
+}
+
 export function declareWar(
   game: GameState,
   aggressorId: string,
@@ -55,15 +78,16 @@ export function declareWar(
   const current = getRelationStatus(game, aggressorId, defenderId);
   if (current === "war") return game;
 
-  // 同盟関係から戦争に遷移する場合は同盟自動破棄
   let working: GameState = game;
+
+  // 同盟関係から戦争に遷移する場合: 同盟破棄ペナルティを付与
   if (current === "ally") {
     const atkName = NATION_DEF_MAP[aggressorId]?.name ?? aggressorId;
     const defName = NATION_DEF_MAP[defenderId]?.name ?? defenderId;
     working = addEvent(working, `${atkName}が${defName}との同盟を破棄`);
+    working = applyAllianceBreakPenalty(working, aggressorId);
   }
 
-  // 関連する同盟提案を破棄
   working = {
     ...working,
     pendingAllianceProposals: working.pendingAllianceProposals.filter(
@@ -104,7 +128,10 @@ export function proposeAlliance(
   const current = getRelationStatus(game, fromId, toId);
   if (current === "war" || current === "ally") return game;
 
-  // 既存の提案があれば無視
+  // 同盟上限チェック
+  if (countAlliances(game, fromId) >= MAX_ALLIANCES) return game;
+  if (countAlliances(game, toId) >= MAX_ALLIANCES) return game;
+
   const existing = game.pendingAllianceProposals.find(
     (p) =>
       (p.from === fromId && p.to === toId) ||
@@ -139,6 +166,10 @@ export function acceptAlliance(
     (p) => p.from === fromId && p.to === toId
   );
   if (!proposal) return game;
+
+  // 受諾時点でも上限チェック
+  if (countAlliances(game, fromId) >= MAX_ALLIANCES) return game;
+  if (countAlliances(game, toId) >= MAX_ALLIANCES) return game;
 
   const cleaned: GameState = {
     ...game,
@@ -180,7 +211,10 @@ export function breakAlliance(
 ): GameState {
   if (!isDiplomaticPair(a, b)) return game;
   if (getRelationStatus(game, a, b) !== "ally") return game;
-  const next = setRelation(game, a, b, "peaceful");
+
+  let next = setRelation(game, a, b, "peaceful");
+  next = applyAllianceBreakPenalty(next, a);
+
   const aName = NATION_DEF_MAP[a]?.name ?? a;
   const bName = NATION_DEF_MAP[b]?.name ?? b;
   return addEvent(next, `${aName}が${bName}との同盟を破棄`);

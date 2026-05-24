@@ -8,3 +8,4 @@ export * from "./ai.js";
 export * from "./events.js";
 export * from "./cards.js";
 export * from "./diplomacy.js";
+export * from "./sealanes.js";

@@ -1,23 +1,35 @@
 import type { GameState } from "./game.js";
 import { NATIONS_DEF } from "./map.js";
 
-export function checkVictory(game: GameState): GameState {
-  if (game.phase === "finished") return game;
-
+function checkDominationVictory(game: GameState): GameState | null {
   const aliveNations = NATIONS_DEF.filter((n) => game.nations[n.id]?.isAlive);
-
-  // domination victory: one nation owns all states
   if (aliveNations.length === 1) {
+    const winner = aliveNations[0];
     return {
       ...game,
       phase: "finished",
-      winner: aliveNations[0].id,
-      eventLog: [`${NATIONS_DEF.find((n) => n.id === aliveNations[0].id)?.name ?? aliveNations[0].id}が全土を制圧！`, ...game.eventLog].slice(0, 30),
+      winner: winner.id,
+      eventLog: [
+        `${winner.name}が全土を制圧！`,
+        ...game.eventLog,
+      ].slice(0, 30),
     };
   }
+  return null;
+}
 
-  // timer victory
+function checkStrategyVictory(game: GameState): GameState {
+  const domination = checkDominationVictory(game);
+  if (domination) return domination;
+  return game;
+}
+
+function checkCasualVictory(game: GameState): GameState {
+  const domination = checkDominationVictory(game);
+  if (domination) return domination;
+
   if (game.elapsedSeconds >= game.timerLimit) {
+    const aliveNations = NATIONS_DEF.filter((n) => game.nations[n.id]?.isAlive);
     let winnerId: string | null = null;
     let maxStates = -1;
     let tied = false;
@@ -34,14 +46,26 @@ export function checkVictory(game: GameState): GameState {
     }
 
     const result = tied ? null : winnerId;
-    const name = result ? (NATIONS_DEF.find((n) => n.id === result)?.name ?? result) : "引き分け";
+    const name = result
+      ? (NATIONS_DEF.find((n) => n.id === result)?.name ?? result)
+      : "引き分け";
     return {
       ...game,
       phase: "finished",
       winner: result,
-      eventLog: [tied ? "時間切れ！引き分けです" : `時間切れ！${name}の勝利！`, ...game.eventLog].slice(0, 30),
+      eventLog: [
+        tied ? "時間切れ！引き分けです" : `時間切れ！${name}の勝利！`,
+        ...game.eventLog,
+      ].slice(0, 30),
     };
   }
 
   return game;
+}
+
+export function checkVictory(game: GameState): GameState {
+  if (game.phase === "finished") return game;
+
+  if (game.gameMode === "strategy") return checkStrategyVictory(game);
+  return checkCasualVictory(game);
 }

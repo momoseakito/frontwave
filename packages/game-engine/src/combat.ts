@@ -1,10 +1,23 @@
 import type { GameState, OngoingAttack } from "./game.js";
+import { triggerNationSurrender } from "./game.js";
 import { STATE_DEF_MAP, NATION_DEF_MAP } from "./map.js";
-import { ATTACKER_PENALTY, COMBAT_DPS_SCALE, TERRAIN_DEFENSE, type Terrain } from "./constants.js";
+import {
+  ATTACKER_COEFFICIENT,
+  DEFENDER_COEFFICIENT,
+  ALLIANCE_BREAK_ATTACK_MULT,
+  TERRAIN_DEFENSE,
+  type Terrain,
+} from "./constants.js";
 import { addEvent } from "./events.js";
 import { escalateRelation, isDiplomaticPair } from "./diplomacy.js";
 
 function getEffectiveTerrain(game: GameState, stateId: string): Terrain {
+  // 永続的な地形アップグレードを確認
+  const permanent = game.activeEffects.find(
+    (e) => e.type === "terrain_upgrade" && e.stateId === stateId
+  );
+  if (permanent && permanent.type === "terrain_upgrade") return permanent.permanentTerrain;
+
   const override = game.activeEffects.find(
     (e) => e.type === "terrain_override" && e.stateId === stateId
   );
@@ -24,11 +37,35 @@ function getFortifyMultiplier(game: GameState, stateId: string): number {
   return 1.0;
 }
 
-function getAttackerPenalty(game: GameState, attackerId: string): number {
+function getAttackerMultiplier(game: GameState, attackerId: string): number {
+  const now = game.elapsedSeconds;
+
+  // 電撃戦カードがあれば攻撃ペナルティなし
   const blitz = game.activeEffects.find(
     (e) => e.type === "blitzkrieg" && e.nationId === attackerId && e.usesLeft > 0
   );
-  return blitz ? 1.0 : ATTACKER_PENALTY;
+  const basePenalty = blitz ? 1.0 : 0.75;
+
+  // 同盟破棄ペナルティ
+  const alliancePenalty = game.activeEffects.find(
+    (e) =>
+      e.type === "alliance_break_penalty" &&
+      e.nationId === attackerId &&
+      e.expiresAt > now
+  );
+  const allianceMult = alliancePenalty ? ALLIANCE_BREAK_ATTACK_MULT : 1.0;
+
+  // 攻撃ブーストカード
+  const attackBoost = game.activeEffects.find(
+    (e) =>
+      e.type === "attack_boost" &&
+      e.nationId === attackerId &&
+      e.expiresAt > now
+  );
+  const boostMult =
+    attackBoost && attackBoost.type === "attack_boost" ? attackBoost.multiplier : 1.0;
+
+  return basePenalty * allianceMult * boostMult;
 }
 
 export function applyCombatDelta(
@@ -42,6 +79,7 @@ export function applyCombatDelta(
   let updatedEffects = [...game.activeEffects];
   let log = game.eventLog;
   const escalationPairs: Array<[string, string]> = [];
+  const surrenderPairs: Array<[string, string]> = []; // [surrenderedNationId, captorId]
 
   for (const attack of game.ongoingAttacks) {
     const { attackerId, targetStateId, sourceStateId } = attack;
@@ -53,10 +91,8 @@ export function applyCombatDelta(
       continue;
     }
 
-    // Neutralized state cannot be attacked
     if (target.neutralizedUntil > game.elapsedSeconds) continue;
 
-    // Source lost or captured
     if (source.ownerId !== attackerId) {
       resolvedTargets.push(targetStateId);
       continue;
@@ -64,16 +100,15 @@ export function applyCombatDelta(
 
     const terrain = getEffectiveTerrain(game, targetStateId);
     const defenseMultiplier = TERRAIN_DEFENSE[terrain] * getFortifyMultiplier(game, targetStateId);
-    const attackPenalty = getAttackerPenalty(game, attackerId);
+    const attackerMult = getAttackerMultiplier(game, attackerId);
 
-    const attackerDps = source.troops * attackPenalty * COMBAT_DPS_SCALE * deltaSeconds;
-    const defenderDps = target.troops * defenseMultiplier * COMBAT_DPS_SCALE * deltaSeconds;
+    const attackerDps = source.troops * ATTACKER_COEFFICIENT * attackerMult * deltaSeconds;
+    const defenderDps = target.troops * DEFENDER_COEFFICIENT * defenseMultiplier * deltaSeconds;
 
     const newSourceTroops = source.troops - defenderDps;
     const newTargetTroops = target.troops - attackerDps;
 
     if (newSourceTroops <= 0) {
-      // attacker wiped out — cancel attack
       states = {
         ...states,
         [sourceStateId]: { ...source, troops: 0 },
@@ -83,9 +118,10 @@ export function applyCombatDelta(
       const atkName = NATION_DEF_MAP[attackerId]?.name ?? attackerId;
       log = [`${atkName}の攻撃が撃退された！`, ...log].slice(0, 30);
     } else if (newTargetTroops <= 0) {
-      // defender captured
       const capturedTroops = Math.max(1, newSourceTroops * 0.5);
       const prevOwner = target.ownerId;
+      const stateDef = STATE_DEF_MAP[targetStateId];
+
       states = {
         ...states,
         [sourceStateId]: { ...source, troops: newSourceTroops * 0.8 },
@@ -100,7 +136,7 @@ export function applyCombatDelta(
       };
       resolvedTargets.push(targetStateId);
 
-      // consume blitzkrieg use
+      // 電撃戦の使用回数消費
       updatedEffects = updatedEffects.map((e) => {
         if (e.type === "blitzkrieg" && e.nationId === attackerId && e.usesLeft > 0) {
           return { ...e, usesLeft: e.usesLeft - 1 };
@@ -109,15 +145,18 @@ export function applyCombatDelta(
       });
 
       const atkName = NATION_DEF_MAP[attackerId]?.name ?? attackerId;
-      const defName = NATION_DEF_MAP[prevOwner]?.name ?? prevOwner;
-      const stateDef = STATE_DEF_MAP[targetStateId];
+      const defName = NATION_DEF_MAP[prevOwner]?.name ?? (prevOwner === "neutral" ? "中立" : prevOwner);
       log = [`${atkName}が${defName}の${stateDef?.name ?? targetStateId}を占領！`, ...log].slice(0, 30);
 
-      if (isDiplomaticPair(attackerId, prevOwner)) {
+      if (prevOwner !== "neutral" && isDiplomaticPair(attackerId, prevOwner)) {
         escalationPairs.push([attackerId, prevOwner]);
       }
+
+      // ストラテジーモード: 首都陥落で降伏
+      if (game.gameMode === "strategy" && stateDef?.capitalOf && stateDef.capitalOf !== "neutral") {
+        surrenderPairs.push([stateDef.capitalOf, attackerId]);
+      }
     } else {
-      // battle continues
       states = {
         ...states,
         [sourceStateId]: { ...source, troops: newSourceTroops },
@@ -140,6 +179,13 @@ export function applyCombatDelta(
 
   for (const [a, b] of escalationPairs) {
     next = escalateRelation(next, a, b);
+  }
+
+  // 降伏処理（ストラテジーモード）
+  for (const [surrenderedId, captorId] of surrenderPairs) {
+    if (next.nations[surrenderedId]?.isAlive) {
+      next = triggerNationSurrender(next, surrenderedId, captorId);
+    }
   }
 
   return next;
