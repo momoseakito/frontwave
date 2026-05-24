@@ -1,0 +1,490 @@
+# game-engine 州 ID → Natural Earth admin-1 (iso_3166_2) のマッピング
+# build スクリプトでこのファイルを読み、対応する admin-1 をディゾルブして
+# assets/europe-provinces.geojson を生成する。
+#
+# 各エントリの意味:
+#   name:    UI 表示名 (日本語)
+#   nation:  所属国 ID (emp/kgd/fed/rep/hol/dch または "neutral")
+#   admin1:  Natural Earth の iso_3166_2 配列。複数なら dissolve される
+
+# ============================================================
+# 帝国 (emp): ドイツ + 一部周辺 13 州
+# ============================================================
+# emp_capital を中央 (DE-BE Berlin) に置き、放射状に隣接州を配置。
+# 設計の隣接関係 (capital ↔ saxony/franconia/bavaria/austria/prussia) と
+# 北海岸の brabant→mecklenburg→holstein のラインを優先。
+
+emp_capital:
+  name: 皇帝都
+  nation: emp
+  admin1: ["DE-BE", "DE-BB"]            # Berlin + Brandenburg (首都圏)
+
+emp_saxony:
+  name: ザクセン
+  nation: emp
+  admin1: ["DE-SN", "DE-ST"]            # Saxony + Saxony-Anhalt
+
+emp_franconia:
+  name: フランコニア
+  nation: emp
+  admin1: ["DE-TH", "DE-HE"]            # Thuringia + Hesse (中央南独)
+
+emp_bavaria:
+  name: バイエルン
+  nation: emp
+  admin1: ["DE-BY"]                     # Bavaria
+
+emp_austria:
+  name: オーストリア
+  nation: emp
+  admin1: ["AT-3", "AT-4", "AT-9"]      # Lower Austria + Upper Austria + Vienna
+
+emp_swabia:
+  name: シュヴァーベン
+  nation: emp
+  admin1: ["DE-BW"]                     # Baden-Württemberg
+
+emp_westmark:
+  name: 西辺境州
+  nation: emp
+  admin1: ["DE-RP", "DE-SL"]            # Rhineland-Palatinate + Saarland
+
+emp_prussia:
+  name: プロイセン
+  nation: emp
+  admin1: ["DE-NW"]                     # North Rhine-Westphalia
+  # 注: 史実の東プロイセンではなく "帝国の東主要州" として NRW を割当。
+  # 設計の隣接 (capital, saxony, pomerania, neu_baltic, fed_gothland) は
+  # 隣接整合性チェックの後で要調整。
+
+emp_pomerania:
+  name: ポメラニア
+  nation: emp
+  admin1: ["DE-MV"]                     # Mecklenburg-Western Pomerania
+
+emp_mecklenburg:
+  name: メクレンブルク
+  nation: emp
+  admin1: ["DE-HH", "DE-HB"]            # Hamburg + Bremen (北独の港町)
+
+emp_holstein:
+  name: ホルシュタイン
+  nation: emp
+  admin1: ["DE-SH"]                     # Schleswig-Holstein
+
+emp_brabant:
+  name: ブラバント
+  nation: emp
+  admin1: ["DE-NI"]                     # Lower Saxony (北独の北海沿岸)
+
+emp_carinthia:
+  name: ケルンテン
+  nation: emp
+  admin1: ["AT-2", "AT-5", "AT-6", "AT-7", "AT-8"]
+  # Carinthia + Salzburg + Styria + Tyrol + Vorarlberg (オーストリア南西部)
+
+# ============================================================
+# 王国 (kgd): フランス 12 州
+# ============================================================
+# 歴史的州区分 (Provinces of Ancien Régime) を département でグルーピング。
+# capital を Île-de-France (パリ周辺) に置き、放射状に配置。
+
+kgd_capital:
+  name: 王都
+  nation: kgd
+  admin1: ["FR-75", "FR-77", "FR-78", "FR-91", "FR-92", "FR-93", "FR-94", "FR-95"]
+  # Île-de-France 8 département (パリ首都圏)
+
+kgd_normandy:
+  name: ノルマンディー
+  nation: kgd
+  admin1: ["FR-14", "FR-27", "FR-50", "FR-61", "FR-76"]
+  # Calvados + Eure + Manche + Orne + Seine-Maritime
+
+kgd_champagne:
+  name: シャンパーニュ
+  nation: kgd
+  admin1: ["FR-08", "FR-10", "FR-51", "FR-52"]
+  # Ardennes + Aube + Marne + Haute-Marne
+
+kgd_burgundy:
+  name: ブルゴーニュ
+  nation: kgd
+  admin1: ["FR-21", "FR-58", "FR-71", "FR-89", "FR-39", "FR-25", "FR-70", "FR-90"]
+  # Côte-d'Or + Nièvre + Saône-et-Loire + Yonne + Jura + Doubs + Haute-Saône + Belfort
+  # (旧ブルゴーニュ + フランシュ=コンテ)
+
+kgd_lorraine:
+  name: ロレーヌ
+  nation: kgd
+  admin1: ["FR-54", "FR-55", "FR-57", "FR-88", "FR-67", "FR-68"]
+  # Meurthe-et-Moselle + Meuse + Moselle + Vosges + Bas-Rhin + Haut-Rhin
+  # (ロレーヌ + アルザス)
+
+kgd_brittany:
+  name: ブルターニュ
+  nation: kgd
+  admin1: ["FR-22", "FR-29", "FR-35", "FR-56", "FR-44"]
+  # Côtes-d'Armor + Finistère + Ille-et-Vilaine + Morbihan + Loire-Atlantique
+
+kgd_berry:
+  name: ベリー
+  nation: kgd
+  admin1: ["FR-18", "FR-36", "FR-28", "FR-37", "FR-41", "FR-45", "FR-72", "FR-49", "FR-53"]
+  # Cher + Indre + Eure-et-Loir + Indre-et-Loire + Loir-et-Cher + Loiret + Sarthe + Maine-et-Loire + Mayenne
+  # (ベリー + 中央ロワール一帯)
+
+kgd_gascony:
+  name: ガスコーニュ
+  nation: kgd
+  admin1: ["FR-33", "FR-40", "FR-47", "FR-64", "FR-32", "FR-24", "FR-16", "FR-17", "FR-79", "FR-85", "FR-86"]
+  # Gironde + Landes + Lot-et-Garonne + Pyrénées-Atlantiques + Gers
+  # + Dordogne + Charente + Charente-Maritime + Deux-Sèvres + Vendée + Vienne
+  # (ガスコーニュ + アキテーヌ + ポワトゥー)
+
+kgd_languedoc:
+  name: ラングドック
+  nation: kgd
+  admin1: ["FR-09", "FR-11", "FR-12", "FR-30", "FR-31", "FR-34", "FR-48", "FR-65", "FR-66", "FR-81", "FR-82", "FR-46"]
+  # Ariège + Aude + Aveyron + Gard + Haute-Garonne + Hérault + Lozère
+  # + Hautes-Pyrénées + Pyrénées-Orientales + Tarn + Tarn-et-Garonne + Lot
+
+kgd_dauphine:
+  name: ドーフィネ
+  nation: kgd
+  admin1: ["FR-05", "FR-26", "FR-38", "FR-73", "FR-74", "FR-01", "FR-69", "FR-42", "FR-43", "FR-63", "FR-03", "FR-07", "FR-15", "FR-19", "FR-23", "FR-87"]
+  # Hautes-Alpes + Drôme + Isère + Savoie + Haute-Savoie + Ain + Rhône + Loire
+  # + Haute-Loire + Puy-de-Dôme + Allier + Ardèche + Cantal + Corrèze + Creuse + Haute-Vienne
+  # (ドーフィネ + サヴォワ + リヨネ + オーヴェルニュ + リムーザン)
+
+kgd_artois:
+  name: アルトワ
+  nation: kgd
+  admin1: ["FR-02", "FR-59", "FR-60", "FR-62", "FR-80"]
+  # Aisne + Nord + Oise + Pas-de-Calais + Somme (北フランス・ピカルディ+アルトワ)
+
+kgd_provence:
+  name: プロヴァンス
+  nation: kgd
+  admin1: ["FR-04", "FR-06", "FR-13", "FR-83", "FR-84"]
+  # Alpes-de-Haute-Provence + Alpes-Maritimes + Bouches-du-Rhône + Var + Vaucluse
+
+# ============================================================
+# 共和国 (rep): イタリア 10 州
+# ============================================================
+# rep_capital をローマに置き、北イタリアから南へ放射状に配置。
+# 設計外の Marche 5 県 (AN/AP/MC/FM/PU) は隣接の rep_romagna へ吸収。
+
+rep_capital:
+  name: 共和国首都
+  nation: rep
+  admin1: ["IT-RM"]                     # Rome (ラツィオ州都)
+
+rep_piedmont:
+  name: ピエモンテ
+  nation: rep
+  admin1: ["IT-TO", "IT-VC", "IT-NO", "IT-AL", "IT-AT", "IT-BI", "IT-CN", "IT-VB"]
+  # Turin + Vercelli + Novara + Alessandria + Asti + Biella + Cuneo + Verbano-Cusio-Ossola
+
+rep_lombardy:
+  name: ロンバルディア
+  nation: rep
+  admin1: ["IT-MI", "IT-VA", "IT-CO", "IT-LC", "IT-BG", "IT-BS", "IT-LO", "IT-CR", "IT-MN", "IT-PV", "IT-MB", "IT-SO"]
+  # Milan + Varese + Como + Lecco + Bergamo + Brescia + Lodi + Cremona + Mantua + Pavia + Monza-Brianza + Sondrio
+
+rep_venice:
+  name: ヴェネツィア
+  nation: rep
+  admin1: ["IT-VE", "IT-PD", "IT-TV", "IT-VR", "IT-VI", "IT-RO", "IT-BL", "IT-TN", "IT-BZ"]
+  # Venice + Padua + Treviso + Verona + Vicenza + Rovigo + Belluno + Trentino + South Tyrol
+
+rep_genoa:
+  name: ジェノヴァ
+  nation: rep
+  admin1: ["IT-GE", "IT-IM", "IT-SV", "IT-SP"]
+  # Liguria + Imperia + Savona + La Spezia (リグーリア海岸全県)
+
+rep_tuscany:
+  name: トスカーナ
+  nation: rep
+  admin1: ["IT-FI", "IT-SI", "IT-GR", "IT-LI", "IT-PI", "IT-PT", "IT-AR", "IT-LU", "IT-MS", "IT-PO"]
+  # Florence + Siena + Grosseto + Livorno + Pisa + Pistoia + Arezzo + Lucca + Massa-Carrara + Prato
+
+rep_romagna:
+  name: ロマーニャ
+  nation: rep
+  admin1: ["IT-FC", "IT-RN", "IT-RA", "IT-BO", "IT-MO", "IT-RE", "IT-PR", "IT-PC", "IT-FE", "IT-AN", "IT-AP", "IT-MC", "IT-FM", "IT-PU"]
+  # Emilia-Romagna 全県 + Marche 全県 (Ancona/Ascoli Piceno/Macerata/Fermo/Pesaro-Urbino を吸収)
+
+rep_naples:
+  name: ナポリ
+  nation: rep
+  admin1: ["IT-NA", "IT-CE", "IT-AV", "IT-SA", "IT-BN", "IT-IS", "IT-CB", "IT-FG", "IT-BA", "IT-BT", "IT-BR", "IT-LE", "IT-TA", "IT-AQ", "IT-PE", "IT-CH", "IT-TE", "IT-PG", "IT-TR", "IT-VT", "IT-RI", "IT-LT", "IT-FR", "IT-MT", "IT-PZ"]
+  # 中南部本土全域: Campania + Molise + Puglia + Abruzzo + Umbria + ラツィオ周辺 + Basilicata
+  # ("ナポリ" を中南部代表として広く取る)
+
+rep_calabria:
+  name: カラブリア
+  nation: rep
+  admin1: ["IT-RC", "IT-KR", "IT-CZ", "IT-CS", "IT-VV"]
+  # Reggio Calabria + Crotone + Catanzaro + Cosenza + Vibo Valentia (Catania IT-CT はシチリア=hol_palermo へ)
+
+rep_friuli:
+  name: フリウリ
+  nation: rep
+  admin1: ["IT-TS", "IT-GO", "IT-PN", "IT-UD"]
+  # Trieste + Gorizia + Pordenone + Udine (Friuli-Venezia Giulia 全県)
+
+# ============================================================
+# 連邦 (fed): スカンジナビア 10 州
+# ============================================================
+# fed_capital をストックホルムに置き、ノルウェー・スウェーデン・フィンランドを配置。
+# Faroe は admin1 一覧に存在しないため fed_faroe は空割当 (UI 側で別途扱う)。
+
+fed_capital:
+  name: 連邦首都
+  nation: fed
+  admin1: ["SE-AB"]                     # Stockholm
+
+fed_norway:
+  name: ノルウェー
+  nation: fed
+  admin1: ["NO-03", "NO-02", "NO-06", "NO-07", "NO-08", "NO-01", "NO-09", "NO-10", "NO-11"]
+  # Oslo + Akershus + Buskerud + Vestfold + Telemark + Østfold + Aust-Agder + Vest-Agder + Rogaland
+  # (南ノルウェー: 首都圏オスロ + 南海岸)
+
+fed_sweden:
+  name: スウェーデン
+  nation: fed
+  admin1: ["SE-C", "SE-D", "SE-U", "SE-W", "SE-T", "SE-X"]
+  # Uppsala + Södermanland + Västmanland + Dalarna + Örebro + Gävleborg (中部スウェーデン)
+
+fed_gothland:
+  name: ゴートランド
+  nation: fed
+  admin1: ["SE-O", "SE-F", "SE-G", "SE-H", "SE-I", "SE-N", "SE-E"]
+  # Västra Götaland + Jönköping + Kronoberg + Kalmar + Gotland + Halland + Östergötland (南スウェーデン本土+島)
+
+fed_denmark:
+  name: デンマーク
+  nation: fed
+  admin1: ["DK-85", "DK-84", "DK-83"]   # Zealand + Denmark + Southern Denmark
+
+fed_finland:
+  name: フィンランド
+  nation: fed
+  admin1: ["FI-18", "FI-19", "FI-06", "FI-11", "FI-17", "FI-16", "FI-09"]
+  # Uusimaa + Finland Proper + Tavastia Proper + Pirkanmaa + Satakunta + Päijänne Tavastia + Kymenlaakso
+
+fed_northland:
+  name: ノルトランド
+  nation: fed
+  admin1: ["NO-04", "NO-05", "NO-12", "NO-14", "NO-15", "NO-16", "NO-17", "NO-18", "NO-19", "NO-20", "SE-S", "SE-Y", "SE-Z", "SE-AC", "SE-BD"]
+  # ノルウェー北西〜北極圏 (Hedmark/Oppland/Hordaland/Sogn/Møre/Sør-Trøndelag/Nord-Trøndelag/Nordland/Troms/Finnmark)
+  # + スウェーデン北部 (Värmland/Västernorrland/Jämtland/Västerbotten/Norrbotten)
+
+fed_karelia:
+  name: カレリア
+  nation: fed
+  admin1: ["FI-02", "FI-04", "FI-13", "FI-15", "FI-05", "FI-14", "FI-08", "FI-03", "FI-07", "FI-12", "FI-10"]
+  # フィンランド首都圏以外: South Karelia + Southern Savonia + North Karelia + Northern Savonia
+  # + Kainuu + Northern Ostrobothnia + Central Finland + Southern Ostrobothnia + Central Ostrobothnia + Ostrobothnia + Lapland
+
+fed_iceland:
+  name: アイスランド
+  nation: fed
+  admin1: ["IS-0", "IS-1", "IS-2", "IS-3", "IS-4", "IS-5", "IS-6", "IS-7", "IS-8"]
+  # アイスランド全域 (Faroe を吸収統合)
+
+fed_faroe:
+  name: フェロー諸島
+  nation: fed
+  admin1: []                            # admin1 に存在せず、fed_iceland に統合扱い (TODO: 別ソース要)
+
+# ============================================================
+# 聖王国 (hol): イベリア + 西地中海 10 州
+# ============================================================
+# hol_capital をマドリードに置き、イベリア全域 + 島嶼 + モロッコ北部を配置。
+# Galicia (ES-C/LU/OR/PO) と Canary (ES-GC/TF) は対応州が無いため未割当。
+
+hol_capital:
+  name: 聖王国首都
+  nation: hol
+  admin1: ["ES-M"]                      # Community of Madrid
+
+hol_castile:
+  name: カスティーリャ
+  nation: hol
+  admin1: ["ES-VA", "ES-SA", "ES-AV", "ES-SG", "ES-CU", "ES-TO", "ES-GU", "ES-AB", "ES-CR", "ES-BU", "ES-P", "ES-SO", "ES-LE", "ES-ZA", "ES-CC", "ES-BA", "ES-O", "ES-S"]
+  # 旧+新カスティーリャ全県 + León + Extremadura + Asturias + Cantabria
+
+hol_aragon:
+  name: アラゴン
+  nation: hol
+  admin1: ["ES-Z", "ES-HU", "ES-TE"]    # Zaragoza + Huesca + Teruel (Aragón 全県)
+
+hol_portugal:
+  name: ポルトガル
+  nation: hol
+  admin1: ["PT-11", "PT-13", "PT-03", "PT-16", "PT-06", "PT-10", "PT-08", "PT-09", "PT-05", "PT-01", "PT-02", "PT-04", "PT-07", "PT-12", "PT-14", "PT-15", "PT-17", "PT-18"]
+  # Portugal 本土全 18 県 (Lisbon + Porto + Braga + Viana do Castelo + Coimbra + Leiria + Faro + Guarda + Castelo Branco + Aveiro + Beja + Bragança + Évora + Portalegre + Santarém + Setúbal + Viseu + Vila Real)
+
+hol_andalusia:
+  name: アンダルシア
+  nation: hol
+  admin1: ["ES-SE", "ES-CO", "ES-J", "ES-GR", "ES-MA", "ES-CA", "ES-H", "ES-AL"]
+  # Andalucía 全 8 県
+
+hol_navarre:
+  name: ナバラ
+  nation: hol
+  admin1: ["ES-NA", "ES-LO", "ES-VI", "ES-SS", "ES-BI"]
+  # Navarre + La Rioja + Álava + Gipuzkoa + Biscay (Basque 3 県)
+
+hol_catalonia:
+  name: カタルーニャ
+  nation: hol
+  admin1: ["ES-B", "ES-GI", "ES-L", "ES-T", "ES-CS", "ES-V", "ES-A", "ES-MU", "ES-PM"]
+  # Cataluña 4 県 + Valencia 3 県 + Murcia + Balearic Islands
+
+hol_sardinia:
+  name: サルデーニャ
+  nation: hol
+  admin1: ["IT-CA", "IT-NU", "IT-OT", "IT-OG", "IT-OR", "IT-SS", "IT-VS", "IT-CI"]
+  # Sardinia 全 8 県
+
+hol_palermo:
+  name: シチリア
+  nation: hol
+  admin1: ["IT-PA", "IT-ME", "IT-CT", "IT-SR", "IT-RG", "IT-AG", "IT-EN", "IT-CL", "IT-TP"]
+  # Sicily 全 9 県
+
+hol_morocco:
+  name: モロッコ海峡
+  nation: hol
+  admin1: ["MA-01", "MA-02", "MA-04"]
+  # Tangier-Tetouan + Gharb-Chrarda-Béni Hssen + Oriental (北モロッコ地中海岸)
+
+# ============================================================
+# 公国 (dch): バルカン・東欧 9 州
+# ============================================================
+# dch_capital をベオグラードに置き、東欧〜バルカン〜トルコ・ヨーロッパ側を配置。
+# Bosnia (BA-BIH 集約) と Slovenia / Macedonia / Kosovo は割当不能のため空白。
+
+dch_capital:
+  name: 公国首都
+  nation: dch
+  admin1: ["RS-00", "RS-12", "RS-09", "RS-13"]
+  # Belgrade + Šumadija + Kolubara + Pomoravski (セルビア中央: ベオグラード周辺)
+
+dch_moravia:
+  name: モラヴィア
+  nation: dch
+  admin1: ["CZ-MO", "CZ-ZL", "CZ-OL", "CZ-PA"]
+  # Moravian-Silesian + Zlín + Olomouc + Pardubice (チェコ東部=史実モラヴィア)
+
+dch_hungary:
+  name: ハンガリー
+  nation: dch
+  admin1: ["HU-PE", "HU-BU", "HU-BK", "HU-CS", "HU-HB", "HU-JN", "HU-SD", "HU-NO", "HU-BE", "HU-SZ", "HU-FE", "HU-VE", "HU-TO", "HU-SO", "HU-ZA", "HU-VA", "HU-GS", "HU-KE", "HU-HE", "HU-BZ", "HU-BA"]
+  # Hungary 全県 (Pest + Budapest + Bács-Kiskun + Csongrád + Hajdú-Bihar + Jász-Nagykun + ... + Baranya)
+
+dch_croatia:
+  name: クロアチア
+  nation: dch
+  admin1: ["HR-01", "HR-21", "HR-02", "HR-04", "HR-03", "HR-05", "HR-06", "HR-07", "HR-10", "HR-14", "HR-16", "HR-12", "HR-20"]
+  # クロアチア本土内陸+北部 (Zagreb + Krapina-Zagorje + Karlovac + Sisak-Moslavina + Varaždin + Koprivnica + Bjelovar + Virovitica + Osijek + Vukovar + Brod-Posavina + Međimurje)
+
+dch_wallachia:
+  name: ワラキア
+  nation: dch
+  admin1: ["RO-B", "RO-IF", "RO-DJ", "RO-MH", "RO-GR", "RO-TR", "RO-OT", "RO-AG", "RO-DB", "RO-CL", "RO-IL", "RO-BR", "RO-VL", "RO-GJ", "RO-PH", "RO-BZ", "RO-CT", "RO-TL", "RO-VN", "RO-GL", "RO-VS", "RO-BC", "RO-IS", "RO-SV", "RO-BT", "RO-NT"]
+  # Romania 全県 (Wallachia + Moldavia + Dobruja を一体化)
+
+dch_thrace:
+  name: トラキア
+  nation: dch
+  admin1: ["BG-23", "BG-22", "BG-16", "BG-13", "BG-14", "BG-01", "BG-10", "BG-21", "BG-09", "BG-26", "BG-24", "BG-04", "BG-15", "BG-12", "BG-05", "BG-06", "BG-11", "BG-07", "BG-17", "BG-18", "BG-19", "BG-25", "BG-27", "BG-08", "BG-03", "BG-02", "BG-20", "BG-28"]
+  # Bulgaria 全 28 県
+
+dch_albania:
+  name: アルバニア
+  nation: dch
+  admin1: ["AL-11", "AL-02", "AL-08", "AL-12", "AL-04", "AL-03", "AL-09", "AL-01", "AL-06", "AL-05", "AL-10", "AL-07"]
+  # Albania 全 12 県
+
+dch_ragusa:
+  name: ラグーザ
+  nation: dch
+  admin1: ["HR-19", "HR-08", "HR-13", "HR-15", "HR-17", "HR-09", "HR-18"]
+  # Dubrovnik-Neretva + Primorje-Gorski + Zadar + Šibenik-Knin + Split-Dalmatia + Lika-Senj + Istria (ダルマチア海岸)
+
+dch_anatolia:
+  name: アナトリア
+  nation: dch
+  admin1: ["TR-17", "TR-10", "TR-16", "TR-11", "TR-22", "TR-39", "TR-59", "TR-77", "TR-41", "TR-54", "TR-81", "TR-34"]
+  # Çanakkale + Balıkesir + Bursa + Bilecik + Edirne + Kırklareli + Tekirdağ + Yalova + Kocaeli + Sakarya + Düzce + Istanbul
+  # (トルコ・ヨーロッパ側 + アナトリア北西端、Istanbul は dch_anatolia 側に含める)
+
+# ============================================================
+# 中立 (neutral): 国境要衝 10 州
+# ============================================================
+# 設計の neighbors に従い、複数国にまたがる admin-1 を一体化。
+
+neu_rhine:
+  name: ライン回廊
+  nation: neutral
+  admin1: ["LU-L", "LU-D", "LU-G"]      # Luxembourg 全 3 県
+
+neu_alps:
+  name: アルプス山中
+  nation: neutral
+  admin1: ["CH-BE", "CH-VS", "CH-GE", "CH-VD", "CH-FR", "CH-NE", "CH-JU", "CH-GR", "CH-TI", "CH-UR", "CH-OW", "CH-NW", "CH-SZ", "CH-GL", "CH-LU", "CH-ZG", "CH-AG", "CH-SO", "CH-BL", "CH-BS", "CH-ZH", "CH-SH", "CH-TG", "CH-SG", "CH-AR", "CH-AI"]
+  # Switzerland 全 26 州
+
+neu_flanders:
+  name: フランドル
+  nation: neutral
+  admin1: ["BE-VWV", "BE-VOV", "BE-VBR", "BE-VAN", "BE-VLI", "BE-BRU", "BE-WHT", "BE-WBR", "BE-WNA", "BE-WLG", "BE-WLX", "NL-LI", "NL-NB", "NL-ZE", "NL-ZH", "NL-NH", "NL-UT", "NL-GE", "NL-OV", "NL-FL", "NL-DR", "NL-FR", "NL-GR"]
+  # Belgium 全 11 県 + Netherlands 本土全 12 州 (低地諸国を 1 つに統合)
+
+neu_baltic:
+  name: バルト沿岸
+  nation: neutral
+  admin1: ["PL-PM", "PL-WN", "PL-ZP", "PL-KP", "PL-WP", "PL-LB", "PL-DS", "PL-OP", "PL-SL", "PL-MA", "PL-PK", "PL-LU", "PL-PD", "PL-MZ", "PL-LD", "PL-SK"]
+  # Poland 全 16 県
+
+neu_adriatic:
+  name: アドリア海岸
+  nation: neutral
+  admin1: ["ME-16", "ME-02", "ME-10", "ME-05", "ME-08", "ME-19", "ME-20", "ME-06", "ME-12", "ME-07", "ME-15", "ME-14", "ME-21", "ME-09", "ME-11", "ME-13", "ME-01", "ME-03", "ME-04", "ME-17", "ME-18"]
+  # Montenegro 全 21 県
+
+neu_pyrenees:
+  name: ピレネー
+  nation: neutral
+  admin1: ["AD-02", "AD-03", "AD-04", "AD-05", "AD-06", "AD-07", "AD-08"]
+  # Andorra 全 7 県
+
+neu_bohemia:
+  name: ボヘミア
+  nation: neutral
+  admin1: ["CZ-JC", "CZ-VY", "CZ-JM", "CZ-PR", "CZ-ST", "CZ-LI", "CZ-US", "CZ-KA", "CZ-PL", "CZ-KR"]
+  # チェコ本体 (西〜中央〜南): dch_moravia の CZ-MO/ZL/OL/PA と重複しない
+
+neu_danube:
+  name: ドナウ平原
+  nation: neutral
+  admin1: ["SK-BL", "SK-NI", "SK-TA", "SK-TC", "SK-ZI", "SK-BC", "SK-PV", "SK-KI"]
+  # Slovakia 全 8 県
+
+neu_corsica:
+  name: コルシカ
+  nation: neutral
+  admin1: ["FR-2A", "FR-2B"]            # Corse-du-Sud + Haute-Corse (kgd 未使用)
+
+neu_crimea:
+  name: クリミア
+  nation: neutral
+  admin1: ["UA-65", "UA-23"]
+  # Kherson + Zaporizhzhia (クリミア半島本体は admin-1 に無く、本土南部で代替)
