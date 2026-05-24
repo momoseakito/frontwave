@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
   <title>FrontWave Map</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -19,20 +19,19 @@
       position: relative;
       width: 100vw;
       height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
     }
 
     #map {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
+      position: absolute;
+      inset: 0;
       display: block;
+      width: 100vw;
+      height: 100vh;
       cursor: crosshair;
+      touch-action: none;
+      z-index: 1;
     }
 
-    /* Mode buttons — top left */
     #mode-buttons {
       position: absolute;
       top: 12px;
@@ -52,19 +51,13 @@
       cursor: pointer;
       transition: background 0.15s, color 0.15s;
     }
-
-    .mode-btn:hover {
-      background: rgba(51, 65, 85, 0.9);
-      color: #e2e8f0;
-    }
-
+    .mode-btn:hover { background: rgba(51, 65, 85, 0.9); color: #e2e8f0; }
     .mode-btn.active {
       border-color: #facc15;
       background: rgba(234, 179, 8, 0.15);
       color: #fde047;
     }
 
-    /* Info panel — right side */
     #info-panel {
       position: absolute;
       top: 12px;
@@ -77,7 +70,6 @@
       z-index: 10;
       display: none;
     }
-
     #info-panel h3 {
       font-size: 13px;
       color: #64748b;
@@ -85,19 +77,9 @@
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
+    #info-name { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+    #info-country { font-size: 14px; font-weight: 500; }
 
-    #info-name {
-      font-size: 16px;
-      font-weight: 600;
-      margin-bottom: 6px;
-    }
-
-    #info-country {
-      font-size: 14px;
-      font-weight: 500;
-    }
-
-    /* Tooltip — bottom of cursor */
     #tooltip {
       position: fixed;
       background: rgba(15, 23, 42, 0.92);
@@ -111,7 +93,47 @@
       white-space: nowrap;
     }
 
-    /* Loading overlay */
+    #hud {
+      position: absolute;
+      bottom: 8px;
+      left: 12px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
+      color: #64748b;
+      background: rgba(15, 23, 42, 0.7);
+      padding: 4px 8px;
+      border-radius: 4px;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    #victory {
+      position: absolute;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 12px;
+      background: rgba(15, 23, 42, 0.85);
+      color: #e2e8f0;
+      z-index: 30;
+    }
+    #victory .label {
+      font-size: 14px;
+      color: #94a3b8;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    #victory .winner {
+      font-size: 36px;
+      font-weight: 700;
+    }
+    #victory .msg {
+      font-size: 14px;
+      color: #cbd5e1;
+    }
+
     #loading {
       position: absolute;
       inset: 0;
@@ -127,7 +149,7 @@
 </head>
 <body>
   <div id="map-container">
-    <canvas id="map" width="1920" height="1080"></canvas>
+    <canvas id="map"></canvas>
 
     <div id="mode-buttons">
       <button class="mode-btn active" data-mode="political">政治図</button>
@@ -140,13 +162,20 @@
       <div id="info-country">—</div>
     </div>
 
+    <div id="hud">—</div>
+
+    <div id="victory">
+      <div class="label">Victory</div>
+      <div class="winner" id="victory-winner">—</div>
+      <div class="msg" id="victory-msg">—</div>
+    </div>
+
     <div id="loading">地図を読み込み中…</div>
   </div>
 
   <div id="tooltip"></div>
 
   <script src="https://unpkg.com/d3@7/dist/d3.min.js"></script>
-  <script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"></script>
   <script type="module" src="./main.js"></script>
 </body>
 </html>

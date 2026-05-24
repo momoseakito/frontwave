@@ -1,69 +1,98 @@
-// Country colors derived from @asobee/game-strategy NATIONS_DEF
-const COUNTRY_DEFS = {
-  de: { name: "ドイツ",           color: [107, 114, 128], tag: "de" },
-  fr: { name: "フランス",         color: [59,  130, 246], tag: "fr" },
-  gb: { name: "イギリス",         color: [239, 68,  68 ], tag: "gb" },
-  it: { name: "イタリア",         color: [22,  163, 74 ], tag: "it" },
-  es: { name: "スペイン",         color: [202, 138, 4  ], tag: "es" },
-  pl: { name: "ポーランド",       color: [249, 115, 22 ], tag: "pl" },
-  su: { name: "ロシア",           color: [185, 28,  28 ], tag: "su" },
-  at: { name: "オーストリア",     color: [167, 139, 250], tag: "at" },
-  tr: { name: "オスマン帝国",     color: [16,  185, 129], tag: "tr" },
-  sc: { name: "スカンジナビア",   color: [6,   182, 212], tag: "sc" },
-  bn: { name: "ベネルクス",       color: [245, 158, 11 ], tag: "bn" },
-};
+// Bridge between the engine's pure GameState (packages/game-engine) and the
+// PixiJS-driven map UI. The engine owns province ownership / troops / phases;
+// this class just holds the latest snapshot and exposes the lookups the map
+// renderer needs (color by owner, name by id, hover/click selection).
+
+import {
+  createInitialState,
+  executeAttack,
+  STATE_DEF_MAP,
+  NATION_DEF_MAP,
+} from "../packages/game-engine/dist/index.js";
+
+let nationDefs = {};
+
+export async function loadNationDefs(url = "../assets/nation-defs.json") {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Failed to load ${url}: ${res.status}`);
+  nationDefs = await res.json();
+  return nationDefs;
+}
 
 export class GameState {
-  constructor() {
-    // Map<provinceId: number, { ownerId: string, name: string, featureId: string }>
-    this.provinces = new Map();
-    // Map<countryId: string, { name, color: [r,g,b], tag }>
-    this.countries = new Map();
+  constructor(playerNationId = "emp") {
+    this.engine = createInitialState(playerNationId);
+    // Lookups keyed by the numeric feature.id assigned by MapData.
+    // featureIdToStateId: numericId -> "emp_capital" etc.
+    // stateIdToFeatureId: reverse, for engine-driven highlight.
+    this.featureIdToStateId = new Map();
+    this.stateIdToFeatureId = new Map();
     this.selectedProvince = null;
   }
 
+  // Called once after buildMapData; binds numeric feature ids to engine state ids
+  // by reading each feature's `properties.id` from the source GeoJSON.
   initFromGeoJSON(geoJSON) {
-    for (const [id, def] of Object.entries(COUNTRY_DEFS)) {
-      this.countries.set(id, { ...def });
-    }
-
-    geoJSON.features.forEach((feature, index) => {
-      const provinceId = index + 1;
-      const { id: featureId, name, nation } = feature.properties;
-      this.provinces.set(provinceId, {
-        ownerId: nation,
-        name,
-        featureId,
-      });
+    geoJSON.features.forEach((f, i) => {
+      const numericId = i + 1;
+      const stateId = f.properties.id;
+      this.featureIdToStateId.set(numericId, stateId);
+      this.stateIdToFeatureId.set(stateId, numericId);
     });
   }
 
-  getOwner(provinceId) {
-    return this.provinces.get(provinceId)?.ownerId ?? null;
+  // Returns engine state record (StateStatus) or null.
+  getStateByFeatureId(numericId) {
+    const sid = this.featureIdToStateId.get(numericId);
+    return sid ? this.engine.states[sid] ?? null : null;
   }
 
-  setOwner(provinceId, countryId) {
-    const p = this.provinces.get(provinceId);
-    if (p) p.ownerId = countryId;
+  getOwner(numericId) {
+    return this.getStateByFeatureId(numericId)?.ownerId ?? null;
   }
 
-  selectProvince(provinceId) {
-    this.selectedProvince = this.selectedProvince === provinceId ? null : provinceId;
+  selectProvince(numericId) {
+    this.selectedProvince = this.selectedProvince === numericId ? null : numericId;
   }
 
-  getCountryColor(countryId) {
-    return this.countries.get(countryId)?.color ?? [128, 128, 128];
+  getCountryColorHex(ownerId) {
+    if (!ownerId) return "#64748b";
+    return nationDefs[ownerId]?.color ?? NATION_DEF_MAP[ownerId]?.color ?? "#64748b";
   }
 
-  getCountryName(countryId) {
-    return this.countries.get(countryId)?.name ?? countryId;
+  getCountryName(ownerId) {
+    if (!ownerId) return "—";
+    return nationDefs[ownerId]?.name ?? NATION_DEF_MAP[ownerId]?.name ?? ownerId;
   }
 
-  getCountryProvinces(countryId) {
-    const result = [];
-    for (const [id, p] of this.provinces) {
-      if (p.ownerId === countryId) result.push(id);
-    }
-    return result;
+  // Returns the engine StateDefinition for a feature id (terrain, neighbors, etc).
+  getStateDef(numericId) {
+    const sid = this.featureIdToStateId.get(numericId);
+    return sid ? STATE_DEF_MAP[sid] ?? null : null;
+  }
+
+  // Replace the engine snapshot wholesale. Callers (the tick driver) supply the
+  // post-tick GameState; the UI re-reads on the next frame.
+  setEngineState(next) {
+    this.engine = next;
+  }
+
+  // Current player's nation id (used by command/attack code in later stages).
+  getPlayerNationId() {
+    return this.engine.playerNationId;
+  }
+
+  // Issue an attack from one feature to another. Returns true if the engine
+  // accepted the command (it can refuse for many reasons: peace period, not
+  // owned, not adjacent, insufficient troops, wrong diplomatic status, etc).
+  tryAttack(sourceFeatureId, targetFeatureId) {
+    const sourceSid = this.featureIdToStateId.get(sourceFeatureId);
+    const targetSid = this.featureIdToStateId.get(targetFeatureId);
+    if (!sourceSid || !targetSid) return false;
+    const before = this.engine;
+    const after = executeAttack(before, sourceSid, targetSid);
+    if (after === before) return false;
+    this.engine = after;
+    return true;
   }
 }
