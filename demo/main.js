@@ -14,11 +14,8 @@ const GEOJSON_URL = "../assets/europe-provinces.geojson";
 // fitSize doesn't waste much area on letterboxing.
 const WORLD_W = 2000;
 const WORLD_H = 1000;
-// Multiplier applied after fitSize so the playable area starts visibly large.
-const INITIAL_ZOOM_BOOST = 1.6;
-// Bounds used to choose the initial viewport center — independent peripheries
-// like Iceland shouldn't drag the camera away from the core 6.
-const FOCUS_NATIONS = ["emp", "kgd", "rep", "hol", "fed", "dch"];
+// Padding around the projected bbox at the most-zoomed-out level.
+const VIEWPORT_MARGIN = 0.05;
 // Render at half resolution and let PIXI's autoDensity upscale via CSS. Full-res
 // composition lagged the pan on WSL2 and similar weak pipelines; 1/2 cuts fill
 // rate by 4x while staying readable for flat-color terrain.
@@ -39,6 +36,11 @@ const infoUpgradeRemain = document.getElementById("info-upgrade-remain");
 const infoUpgradeBar = document.getElementById("info-upgrade-bar");
 const infoAttack = document.getElementById("info-attack");
 const infoAttacker = document.getElementById("info-attacker");
+const infoUpgradeBtn = document.getElementById("info-upgrade-btn");
+const infoUpgradeCost = document.getElementById("info-upgrade-cost");
+const infoUpgradeTime = document.getElementById("info-upgrade-time");
+const diplomacyPanel = document.getElementById("diplomacy-panel");
+const diplomacyRows = document.getElementById("diplomacy-rows");
 const hud = document.getElementById("hud");
 const victoryEl = document.getElementById("victory");
 const victoryWinner = document.getElementById("victory-winner");
@@ -55,13 +57,12 @@ const TERRAIN_JP = {
 const camera = new Camera(WORLD_W, WORLD_H);
 let gameState = null;   // chosen after start-screen
 let app = null;
+let mapDataRef = null;  // held so resize can refit to the same bbox
 const PLAYABLE_NATIONS = ["emp", "kgd", "rep", "hol", "fed", "dch"];
 
-function focusBounds(mapData, nationIds) {
-  const set = new Set(nationIds);
+function worldBounds(features) {
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-  for (const rec of mapData.features) {
-    if (!set.has(rec.nation)) continue;
+  for (const rec of features) {
     const [bx, by, bw, bh] = rec.bbox;
     if (bx < x0) x0 = bx;
     if (by < y0) y0 = by;
@@ -72,25 +73,25 @@ function focusBounds(mapData, nationIds) {
   return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
 }
 
+// Fit the full feature bbox into the window and lock that as minScale, so the
+// initial view is the most-zoomed-out state and the wheel can only zoom in.
 function fitMapToViewport(mapData) {
-  const focus = focusBounds(mapData, FOCUS_NATIONS);
+  const b = worldBounds(mapData.features);
   const w = window.innerWidth;
   const h = window.innerHeight;
-  if (!focus) {
+  if (!b) {
     camera.fitTo(w, h);
     return;
   }
-  // Manually center on focus bbox at boosted zoom (Camera.fitTo would center
-  // on the full worldW/H instead).
-  const sx = w / focus.w;
-  const sy = h / focus.h;
-  camera.minScale = Math.min(w / WORLD_W, h / WORLD_H);
-  camera.scale = Math.min(sx, sy) * INITIAL_ZOOM_BOOST;
-  if (camera.scale > camera.maxScale) camera.scale = camera.maxScale;
-  const cx = focus.x + focus.w / 2;
-  const cy = focus.y + focus.h / 2;
-  camera.tx = w / 2 - cx * camera.scale;
-  camera.ty = h / 2 - cy * camera.scale;
+  const bw = b.w * (1 + 2 * VIEWPORT_MARGIN);
+  const bh = b.h * (1 + 2 * VIEWPORT_MARGIN);
+  const fit = Math.min(w / bw, h / bh);
+  camera.minScale = fit;
+  camera.scale = fit;
+  const cx = b.x + b.w / 2;
+  const cy = b.y + b.h / 2;
+  camera.tx = w / 2 - cx * fit;
+  camera.ty = h / 2 - cy * fit;
 }
 
 function onHover(rec, screenPos) {
@@ -128,10 +129,7 @@ function refreshInfoPanel() {
   if (info.upgradeInProgress) {
     infoUpgrade.style.display = "block";
     infoUpgradeRemain.textContent = info.upgradeRemain.toFixed(0);
-    // Progress is hard to compute without the original duration; fall back to
-    // a coarse "less remaining = fuller bar" with an arbitrary 300s ceiling.
-    const pct = Math.max(0, Math.min(100, (1 - info.upgradeRemain / 300) * 100));
-    infoUpgradeBar.style.width = `${pct}%`;
+    infoUpgradeBar.style.width = `${info.upgradeProgress * 100}%`;
   } else {
     infoUpgrade.style.display = "none";
   }
@@ -144,8 +142,129 @@ function refreshInfoPanel() {
     infoAttack.style.display = "none";
   }
 
+  // Upgrade button: own province, not capped at Lv5, not already upgrading,
+  // and we have the gold. startUpgrade in the engine enforces this too but the
+  // disabled state needs a hint locally.
+  const isOwn = info.ownerId === gameState.getPlayerNationId();
+  const canShow = isOwn && info.nextCost != null;
+  if (canShow) {
+    infoUpgradeBtn.style.display = "block";
+    infoUpgradeCost.textContent = info.nextCost;
+    infoUpgradeTime.textContent = info.nextDuration;
+    const haveGold = gameState.getPlayerFunds() >= info.nextCost;
+    infoUpgradeBtn.disabled = info.upgradeInProgress || !haveGold;
+    infoUpgradeBtn.textContent = info.upgradeInProgress
+      ? "開発中…"
+      : `開発 Lv${info.nextLevel}: ${info.nextCost}g / ${info.nextDuration}s`;
+  } else {
+    infoUpgradeBtn.style.display = "none";
+  }
+
   infoPanel.style.display = "block";
 }
+
+const STATUS_LABEL = { peaceful: "平和", ally: "同盟", war: "戦争" };
+
+function dipAction(label, cls, fn) {
+  const b = document.createElement("button");
+  b.textContent = label;
+  if (cls) b.classList.add(cls);
+  b.addEventListener("click", fn);
+  return b;
+}
+
+let _lastDipKey = "";
+function refreshDiplomacyPanel(force = false) {
+  if (!gameState) return;
+  const rows = gameState.getDiplomacySnapshot();
+  const key = rows
+    .map((r) => `${r.id}:${r.status}:${r.isAlive ? 1 : 0}:${r.incomingProposalId ?? ""}:${r.outgoingProposalId ?? ""}`)
+    .join("|");
+  if (!force && key === _lastDipKey) return;
+  _lastDipKey = key;
+  diplomacyRows.replaceChildren();
+  for (const r of rows) {
+    const row = document.createElement("div");
+    row.className = "dip-row";
+
+    const sw = document.createElement("span");
+    sw.className = "swatch";
+    sw.style.background = r.color;
+    row.appendChild(sw);
+
+    const nm = document.createElement("span");
+    nm.className = "name";
+    nm.textContent = r.name;
+    row.appendChild(nm);
+
+    const st = document.createElement("span");
+    if (!r.isAlive) {
+      st.className = "status dead";
+      st.textContent = "滅亡";
+      row.appendChild(st);
+      diplomacyRows.appendChild(row);
+      continue;
+    }
+    st.className = `status ${r.status}`;
+    st.textContent = STATUS_LABEL[r.status] ?? r.status;
+    row.appendChild(st);
+
+    const actions = document.createElement("div");
+    actions.className = "actions";
+
+    if (r.incomingProposalId) {
+      // Accept / reject from this nation.
+      actions.appendChild(dipAction("受諾", "accept", () => {
+        const ok = gameState.tryAcceptAlliance(r.id);
+        flashHud(ok ? `${r.name}と同盟成立` : "同盟成立できません");
+        refreshDiplomacyPanel();
+      }));
+      actions.appendChild(dipAction("拒否", "reject", () => {
+        const ok = gameState.tryRejectAlliance(r.id);
+        flashHud(ok ? `${r.name}の提案を拒否` : "拒否できません");
+        refreshDiplomacyPanel();
+      }));
+      row.classList.add("full");
+    } else if (r.status === "peaceful") {
+      if (!r.outgoingProposalId) {
+        actions.appendChild(dipAction("同盟", null, () => {
+          const ok = gameState.tryProposeAlliance(r.id);
+          flashHud(ok ? `${r.name}に同盟を提案` : "提案できません");
+          refreshDiplomacyPanel();
+        }));
+      }
+      actions.appendChild(dipAction("宣戦", "reject", () => {
+        const ok = gameState.tryDeclareWar(r.id);
+        flashHud(ok ? `${r.name}に宣戦布告` : "宣戦できません");
+        refreshDiplomacyPanel();
+      }));
+    } else if (r.status === "ally") {
+      actions.appendChild(dipAction("破棄", "reject", () => {
+        const ok = gameState.tryBreakAlliance(r.id);
+        flashHud(ok ? `${r.name}との同盟を破棄` : "破棄できません");
+        refreshDiplomacyPanel();
+      }));
+    }
+    // war: no actions available from engine API
+
+    row.appendChild(actions);
+    diplomacyRows.appendChild(row);
+  }
+  diplomacyPanel.style.display = "block";
+}
+
+infoUpgradeBtn?.addEventListener("click", () => {
+  const fid = gameState?.selectedProvince;
+  if (fid == null) return;
+  const ok = gameState.tryStartUpgrade(fid);
+  if (ok) {
+    refreshInfoPanel();
+    app.requestFrame();
+    flashHud("開発を開始しました");
+  } else {
+    flashHud("開発できません (条件を満たしません)");
+  }
+});
 
 function onClick(rec) {
   gameState.selectProvince(rec?.id ?? null);
@@ -191,10 +310,22 @@ document.querySelectorAll(".mode-btn").forEach((btn) => {
 });
 
 window.addEventListener("resize", () => {
+  if (!mapDataRef) return;
+  const b = worldBounds(mapDataRef.features);
+  if (!b) return;
   const w = window.innerWidth;
   const h = window.innerHeight;
-  camera.minScale = Math.min(w / WORLD_W, h / WORLD_H);
-  if (camera.scale < camera.minScale) camera.scale = camera.minScale;
+  const bw = b.w * (1 + 2 * VIEWPORT_MARGIN);
+  const bh = b.h * (1 + 2 * VIEWPORT_MARGIN);
+  const fit = Math.min(w / bw, h / bh);
+  camera.minScale = fit;
+  if (camera.scale < camera.minScale) {
+    camera.scale = camera.minScale;
+    const cx = b.x + b.w / 2;
+    const cy = b.y + b.h / 2;
+    camera.tx = w / 2 - cx * camera.scale;
+    camera.ty = h / 2 - cy * camera.scale;
+  }
   app?.requestFrame();
 });
 
@@ -215,7 +346,8 @@ function formatElapsed(seconds) {
 function updateHUD() {
   const elapsed = gameState?.engine?.elapsedSeconds ?? 0;
   const frameMs = app?.lastFrameMs ?? 0;
-  hud.textContent = `t=${formatElapsed(elapsed)}  scale=${camera.scale.toFixed(2)}x  frame=${frameMs.toFixed(1)}ms`;
+  const gold = gameState?.getPlayerFunds() ?? 0;
+  hud.textContent = `t=${formatElapsed(elapsed)}  gold=${gold}  scale=${camera.scale.toFixed(2)}x  frame=${frameMs.toFixed(1)}ms`;
 }
 
 async function init(playerNationId) {
@@ -229,6 +361,7 @@ async function init(playerNationId) {
   ]);
   const projection = createEuropeProjection(geoJSON, WORLD_W, WORLD_H);
   const mapData = buildMapData(geoJSON, projection, WORLD_W, WORLD_H);
+  mapDataRef = mapData;
   gameState = new GameState(playerNationId);
   gameState.initFromGeoJSON(geoJSON);
   const hitTester = new HitTester(mapData);
@@ -272,6 +405,7 @@ async function init(playerNationId) {
 
       // Selected province's troops / upgrade / attacker can change every tick.
       if (gameState.selectedProvince != null) refreshInfoPanel();
+      refreshDiplomacyPanel();
 
       if (next.phase === "finished" && prev.phase !== "finished") {
         const winnerName = next.winner
@@ -291,6 +425,7 @@ async function init(playerNationId) {
   window.addEventListener("blur", () => driver.setPaused(true));
   window.addEventListener("focus", () => driver.setPaused(false));
 
+  refreshDiplomacyPanel(true);
   app.requestFrame();
   app.draw();
   updateHUD();

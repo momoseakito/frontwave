@@ -6,9 +6,18 @@
 import {
   createInitialState,
   executeAttack,
+  startUpgrade,
   getMaxTroops,
+  getRelationStatus,
+  proposeAlliance,
+  acceptAlliance,
+  rejectAlliance,
+  breakAlliance,
+  declareWar,
   STATE_DEF_MAP,
   NATION_DEF_MAP,
+  NATIONS_DEF,
+  UPGRADE_COSTS,
 } from "../packages/game-engine/dist/index.js";
 
 let nationDefs = {};
@@ -97,6 +106,15 @@ export class GameState {
     const upgradeRemain = s.upgradeInProgress
       ? Math.max(0, s.upgradeCompletesAt - this.engine.elapsedSeconds)
       : 0;
+    // Next upgrade is to industryLevel+1; UPGRADE_COSTS is 0-indexed by
+    // resulting level - 1 (i.e. UPGRADE_COSTS[0] is cost for Lv 1).
+    const nextLevel = s.industryLevel + 1;
+    const cost = nextLevel <= 5 ? UPGRADE_COSTS[nextLevel - 1] : null;
+    const nextCost = cost ? cost[0] : null;
+    const nextDuration = cost ? cost[1] : null;
+    const upgradeProgress = s.upgradeInProgress && nextDuration
+      ? Math.min(1, 1 - upgradeRemain / nextDuration)
+      : 0;
     return {
       stateId: sid,
       name: def.name,
@@ -111,7 +129,101 @@ export class GameState {
       attackerId: s.attackerId,
       upgradeInProgress: s.upgradeInProgress,
       upgradeRemain,
+      upgradeProgress,
+      nextLevel: nextLevel <= 5 ? nextLevel : null,
+      nextCost,
+      nextDuration,
     };
+  }
+
+  getPlayerFunds() {
+    return Math.floor(this.engine.playerFunds);
+  }
+
+  // ---- Diplomacy ----
+
+  // Returns a snapshot for the diplomacy panel: every other nation with its
+  // relation status, whether the player can act, and any pending proposal
+  // from that nation to the player.
+  getDiplomacySnapshot() {
+    const me = this.engine.playerNationId;
+    const rows = [];
+    for (const n of NATIONS_DEF) {
+      if (n.id === me) continue;
+      const status = getRelationStatus(this.engine, me, n.id);
+      const incoming = this.engine.pendingAllianceProposals.find(
+        (p) => p.from === n.id && p.to === me,
+      );
+      const outgoing = this.engine.pendingAllianceProposals.find(
+        (p) => p.from === me && p.to === n.id,
+      );
+      rows.push({
+        id: n.id,
+        name: n.name,
+        color: n.color,
+        status,
+        isAlive: this.engine.nations[n.id]?.isAlive ?? false,
+        incomingProposalId: incoming?.id ?? null,
+        outgoingProposalId: outgoing?.id ?? null,
+      });
+    }
+    return rows;
+  }
+
+  tryProposeAlliance(targetId) {
+    const me = this.engine.playerNationId;
+    const before = this.engine;
+    const after = proposeAlliance(before, me, targetId);
+    if (after === before) return false;
+    this.engine = after;
+    return true;
+  }
+
+  tryAcceptAlliance(fromId) {
+    const me = this.engine.playerNationId;
+    const before = this.engine;
+    const after = acceptAlliance(before, fromId, me);
+    if (after === before) return false;
+    this.engine = after;
+    return true;
+  }
+
+  tryRejectAlliance(fromId) {
+    const me = this.engine.playerNationId;
+    const before = this.engine;
+    const after = rejectAlliance(before, fromId, me);
+    if (after === before) return false;
+    this.engine = after;
+    return true;
+  }
+
+  tryBreakAlliance(targetId) {
+    const me = this.engine.playerNationId;
+    const before = this.engine;
+    const after = breakAlliance(before, me, targetId);
+    if (after === before) return false;
+    this.engine = after;
+    return true;
+  }
+
+  tryDeclareWar(targetId) {
+    const me = this.engine.playerNationId;
+    const before = this.engine;
+    const after = declareWar(before, me, targetId);
+    if (after === before) return false;
+    this.engine = after;
+    return true;
+  }
+
+  // Returns true if startUpgrade actually moved the engine.
+  tryStartUpgrade(featureId) {
+    const sid = this.featureIdToStateId.get(featureId);
+    if (!sid) return false;
+    const before = this.engine;
+    const after = startUpgrade(before, sid);
+    if (after === before) return false;
+    this.engine = after;
+    return true;
   }
 
   // Issue an attack from one feature to another. Returns true if the engine

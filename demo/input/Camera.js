@@ -21,7 +21,7 @@ export class Camera {
     this.tx = 0;
     this.ty = 0;
     this.minScale = 0.1;
-    this.maxScale = 15;
+    this.maxScale = 50;
     this._listeners = [];
   }
 

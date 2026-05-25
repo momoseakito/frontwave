@@ -6,9 +6,9 @@
 // familiar from Paradox-style strategy games.
 
 const EUROPE_DEFAULTS = {
-  rotate: [-10, 0],   // central meridian at 10°E
+  rotate: [-22, 0],   // central meridian at 22°E (covers Iberia to Urals)
   center: [0, 52],    // latitude of origin at 52°N
-  parallels: [43, 62],
+  parallels: [35, 65],
 };
 
 export function createEuropeProjection(geoJSON, worldW, worldH) {

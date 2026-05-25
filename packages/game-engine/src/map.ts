@@ -56,7 +56,6 @@ const NEUTRAL_STATES: StateDefinition[] = [
   { id: "neu_bohemia",  name: "ボヘミア",       terrain: "mountains", isNeutral: true, neighbors: ["emp_saxony", "emp_austria", "dch_moravia"] },
   { id: "neu_danube",   name: "ドナウ平原",     terrain: "plains",    isNeutral: true, neighbors: ["emp_austria", "dch_hungary", "dch_moravia"] },
   { id: "neu_corsica",  name: "コルシカ",       terrain: "coast",     isNeutral: true, neighbors: [], straitTo: ["rep_genoa", "hol_sardinia"] },
-  { id: "neu_crimea",   name: "クリミア",       terrain: "coast",     isNeutral: true, neighbors: ["dch_wallachia"], straitTo: ["dch_thrace"] },
 ];
 
 export const NATIONS_DEF: NationDefinition[] = ALL_NATIONS.map(
@@ -76,9 +75,23 @@ export const STATE_DEF_MAP: Record<string, StateDefinition> = Object.fromEntries
   STATES_DEF.map((s) => [s.id, s])
 );
 
+// 画像 (1900年代六大国体制) に合わせた中立州の塗り分け。
+// state ID と isNeutral 自体は温存しつつ、見た目だけ各国に編入する。
+const NEUTRAL_OWNER_OVERRIDES: Record<string, string> = {
+  neu_rhine:    "kgd",  // ベネルクス → Iberia-France 領
+  neu_alps:     "rep",  // スイス → German-Austrian 領
+  neu_flanders: "fed",  // ウェールズ → British-Nordic 領
+  neu_baltic:   "emp",  // バルト三国 → Russian 領
+  neu_adriatic: "hol",  // ボスニア → Österreichisches Reich 領
+  neu_pyrenees: "fed",  // 英国北部+スコットランド+北アイルランド → British-Nordic 領
+  neu_bohemia:  "emp",  // ポーランド+ベラルーシ → Russian 領
+  neu_danube:   "emp",  // スロバキア+ウクライナ → Russian 領
+  neu_corsica:  "kgd",  // コルシカ → Iberia-France 領
+};
+
 export const INITIAL_STATE_OWNERS: Record<string, string> = {
   ...Object.fromEntries(ALL_NATIONS.flatMap((n) => n.states.map((s) => [s.id, n.id]))),
-  ...Object.fromEntries(NEUTRAL_STATES.map((s) => [s.id, "neutral"])),
+  ...Object.fromEntries(NEUTRAL_STATES.map((s) => [s.id, NEUTRAL_OWNER_OVERRIDES[s.id] ?? "neutral"])),
 };
 
 // 隣接グラフの双方向整合性を検証するユーティリティ（開発用）

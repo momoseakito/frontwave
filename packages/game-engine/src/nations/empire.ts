@@ -4,7 +4,7 @@ import type { NationConfig } from "../map.js";
 export const empire: NationConfig = {
   id: "emp",
   name: "帝国",
-  color: "#6b7280",
+  color: "#f4d03f",
   capitalStateId: "emp_capital",
   specialty: "defense",
   states: [
