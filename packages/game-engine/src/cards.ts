@@ -237,7 +237,7 @@ function applyCardEffect(
         if (!d) continue;
         for (const nid of d.neighbors) {
           const ns = states[nid];
-          if (ns && ns.ownerId !== game.playerNationId && ns.ownerId !== "neutral") {
+          if (ns && ns.ownerId !== game.playerNationId) {
             // 自州に防衛ブースト
             effects = effects.filter((e) => !(e.type === "fortify" && e.stateId === sid));
             if (!enemyAdjacentStates.has(sid)) {

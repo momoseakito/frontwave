@@ -11,8 +11,6 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const NATIONS_DIR = resolve(__dirname, "../src/nations");
 const OUT = resolve(__dirname, "../../../assets/nation-defs.json");
 
-const NEUTRAL = { name: "中立", color: "#94a3b8" };
-
 const defs = {};
 for (const f of readdirSync(NATIONS_DIR)) {
   if (!f.endsWith(".ts")) continue;
@@ -26,8 +24,6 @@ for (const f of readdirSync(NATIONS_DIR)) {
   }
   defs[id] = { name, color };
 }
-
-defs.neutral = NEUTRAL;
 
 mkdirSync(dirname(OUT), { recursive: true });
 writeFileSync(OUT, JSON.stringify(defs, null, 2) + "\n");

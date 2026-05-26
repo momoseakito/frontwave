@@ -79,9 +79,7 @@ function aiAttackBase(game: GameState, nationId: string, ratio: number): GameSta
     for (const nid of candidates) {
       const ns = states[nid];
       if (!ns || ns.ownerId === nationId) continue;
-      if (ns.neutralizedUntil > game.elapsedSeconds) continue;
       if (
-        ns.ownerId !== "neutral" &&
         isDiplomaticPair(nationId, ns.ownerId) &&
         getRelationStatus(game, nationId, ns.ownerId) !== "war"
       ) {

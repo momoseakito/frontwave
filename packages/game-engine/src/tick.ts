@@ -42,7 +42,6 @@ function troopRegenTick(game: GameState, delta: number): GameState {
   for (const stateId of Object.keys(states)) {
     const s = states[stateId];
     if (!s) continue;
-    if (s.neutralizedUntil > now) continue;
 
     const supplycut = game.activeEffects.find(
       (e) => e.type === "supply_cut" && e.stateId === stateId && e.expiresAt > now
@@ -151,17 +150,6 @@ function expireEffects(game: GameState): GameState {
 
   if (expired.length === 0) return game;
 
-  let states = { ...game.states };
-
-  for (const e of expired) {
-    if (e.type === "revolution_export") {
-      const s = states[e.stateId];
-      if (s && s.neutralizedUntil <= now) {
-        states = { ...states, [e.stateId]: { ...s, neutralizedUntil: 0 } };
-      }
-    }
-  }
-
   const activeEffects = game.activeEffects.filter((e) => {
     if (e.type === "terrain_upgrade") return true; // 永続効果
     if ("expiresAt" in e) return e.expiresAt > now;
@@ -169,7 +157,7 @@ function expireEffects(game: GameState): GameState {
     return true;
   });
 
-  return { ...game, states, activeEffects };
+  return { ...game, activeEffects };
 }
 
 function cardDraftTick(game: GameState): GameState {

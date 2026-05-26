@@ -4,7 +4,7 @@
 #
 # 各エントリの意味:
 #   name:    UI 表示名 (日本語) — 既存温存
-#   nation:  所属国 ID (emp/kgd/fed/rep/hol/dch または "neutral") — 既存温存
+#   nation:  所属国 ID (emp/kgd/fed/rep/hol/dch) — v7 で中立を廃止
 #   admin1:  Natural Earth の iso_3166_2 配列。複数なら dissolve される
 #
 # v2 (1900年代六大国体制マップ):
@@ -36,53 +36,109 @@ emp_saxony:
   admin1: ["RU-TUL", "RU-RYA", "RU-VLA", "RU-IVA", "RU-KLU", "RU-ORL"]
   # モスクワ南東隣接州: トゥーラ + リャザン + ウラジーミル + イヴァノヴォ + カルーガ + オリョール
 
-emp_franconia:
-  name: フランコニア
+emp_franconia_w:
+  name: フランコニア西
   nation: emp
-  admin1: ["RU-NIZ", "RU-CU", "RU-MO", "RU-PNZ", "RU-ULY", "RU-TAM", "RU-LIP"]
-  # ヴォルガ中流: ニジニ + チュヴァシ + モルドヴァ + ペンザ + ウリヤノフスク + タンボフ + リペツク
+  admin1: ["RU-NIZ", "RU-CU", "RU-MO", "RU-PNZ"]
+  # ヴォルガ中流北部: ニジニ・ノヴゴロド + チュヴァシ + モルドヴァ + ペンザ
+
+emp_franconia_s:
+  name: フランコニア南
+  nation: emp
+  admin1: ["RU-ULY", "RU-TAM", "RU-LIP"]
+  # ヴォルガ中流南部: ウリヤノフスク + タンボフ + リペツク
 
 emp_bavaria:
   name: バイエルン
   nation: emp
-  admin1: ["RU-SAR", "RU-VGG", "RU-KL", "RU-AST", "RU-ROS", "RU-STA"]
-  # 南ロシア・カスピ前線: サラトフ + ヴォルゴグラード + カルムイク + アストラハン + ロストフ + スタヴロポリ
+  admin1: ["RU-SAR", "RU-VGG", "RU-ROS"]
+  # ヴォルガ下流〜ドン: サラトフ + ヴォルゴグラード + ロストフ
+
+emp_bavarian_s:
+  name: コーカサス草原
+  nation: emp
+  admin1: ["RU-KL", "RU-AST", "RU-STA"]
+  # カスピ〜コーカサス山麓: カルムイク + アストラハン + スタヴロポリ
 
 emp_austria:
   name: オーストリア
   nation: emp
-  admin1: ["RU-KDA", "RU-AD", "RU-KC", "RU-KB", "RU-SE", "RU-IN", "RU-CE", "RU-DA"]
-  # 北コーカサス前線 (公国 dch との接点): クラスノダール + アディゲ + カラチャイ + カバルダ + 北オセチア + イングーシ + チェチェン + ダゲスタン
+  admin1: ["RU-KDA", "RU-AD"]
+  # 西コーカサス平原: クラスノダール + アディゲ（黒海沿岸・農業地帯）
 
-emp_swabia:
-  name: シュヴァーベン
+emp_austria_e:
+  name: 東コーカサス
   nation: emp
-  admin1: ["RU-BA", "RU-TA", "RU-SAM", "RU-ORE"]
-  # 南ウラル: バシコルトスタン + タタールスタン + サマラ + オレンブルク
+  admin1: ["RU-KC", "RU-KB", "RU-SE", "RU-IN", "RU-CE", "RU-DA"]
+  # 東コーカサス山岳: カラチャイ + カバルダ + 北オセチア + イングーシ + チェチェン + ダゲスタン
+
+emp_swabia_n:
+  name: シュヴァーベン北
+  nation: emp
+  admin1: ["RU-TA", "RU-SAM"]
+  # ヴォルガ〜カザン: タタールスタン + サマラ
+
+emp_swabia_s:
+  name: シュヴァーベン南
+  nation: emp
+  admin1: ["RU-BA", "RU-ORE"]
+  # 南ウラル山麓: バシコルトスタン + オレンブルク
 
 emp_westmark:
   name: 西辺境州
   nation: emp
-  admin1: ["RU-BRY", "RU-SMO", "RU-KRS", "RU-BEL", "RU-VOR"]
-  # 西ロシア国境 (ベラルーシ・ウクライナ側): ブリャンスク + スモレンスク + クルスク + ベルゴロド + ヴォロネジ
+  admin1: ["RU-BRY", "RU-SMO"]
+  # 西ロシア北部国境: ブリャンスク + スモレンスク
+
+emp_westmark_s:
+  name: 西辺境南部
+  nation: emp
+  admin1: ["RU-KRS", "RU-BEL", "RU-VOR"]
+  # 西ロシア南部ステップ: クルスク + ベルゴロド + ヴォロネジ
 
 emp_prussia:
   name: プロイセン
   nation: emp
-  admin1: ["RU-SPE", "RU-LEN", "RU-NGR", "RU-PSK", "RU-TVE"]
-  # 北西ロシア (バルト前線): サンクトペテルブルク市 + レニングラード州 + ノヴゴロド + プスコフ + トヴェリ
+  admin1: ["RU-SPE", "RU-LEN", "RU-NGR", "RU-PSK"]
+  # バルト前線: サンクトペテルブルク市 + レニングラード州 + ノヴゴロド + プスコフ
 
-emp_pomerania:
-  name: ポメラニア
+emp_prussia_s:
+  name: ノヴゴロド内陸
   nation: emp
-  admin1: ["RU-KR", "RU-VLG", "RU-YAR", "RU-KOS"]
-  # 北西〜中央: カレリア共和国 + ヴォログダ + ヤロスラヴリ + コストロマ
+  admin1: ["RU-TVE"]
+  # トヴェリ: ヴォルガ源流・内陸森林地帯
 
-emp_mecklenburg:
-  name: メクレンブルク
+emp_karelia:
+  name: カレリア
   nation: emp
-  admin1: ["RU-ARK", "RU-NEN", "RU-KO"]
-  # 北極海岸西: アルハンゲリスク + ネネツ + コミ共和国
+  admin1: ["RU-KR"]
+  # カレリア共和国 (バルト海〜フィンランド国境)
+
+emp_vologda:
+  name: ヴォログダ
+  nation: emp
+  admin1: ["RU-VLG"]
+  # ヴォログダ州 (内陸森林)
+
+emp_volga_n:
+  name: ヴォルガ上流
+  nation: emp
+  admin1: ["RU-YAR", "RU-KOS"]
+  # ヴォルガ上流: ヤロスラヴリ + コストロマ
+
+emp_arkhangelsk:
+  name: アルハンゲリスク
+  nation: emp
+  admin1: ["RU-ARK"]
+  # アルハンゲリスク州 (北極海岸西部)
+
+emp_nenets:
+  name: ネネツ
+  nation: emp
+  admin1: ["RU-NEN"]
+  # ネネツ自治管区 (北極海岸最東端)
+
+# emp_komi は admin1 が RU-KO の1つのみのため GeoJSON を直接分割して komi_s / komi_n とする
 
 emp_holstein:
   name: ホルシュタイン
@@ -96,11 +152,17 @@ emp_brabant:
   admin1: ["RU-KGD"]
   # カリーニングラード飛び地 (バルト海岸の独立小領)
 
-emp_carinthia:
-  name: ケルンテン
+emp_carinthia_w:
+  name: ケルンテン西
   nation: emp
-  admin1: ["RU-KIR", "RU-UD", "RU-PER", "RU-ME"]
-  # 中央ヴォルガ〜ウラル北端: キーロフ + ウドムルト + ペルミ + マリー・エル
+  admin1: ["RU-ME", "RU-UD"]
+  # ヴォルガ支流西部: マリ・エル + ウドムルト
+
+emp_carinthia_e:
+  name: ケルンテン東
+  nation: emp
+  admin1: ["RU-KIR", "RU-PER"]
+  # ウラル北端: キーロフ + ペルミ
 
 # ============================================================
 # 王国 (kgd) → Iberia-France: 12 州
@@ -185,37 +247,131 @@ kgd_provence:
   # プロヴァンス (ES 地中海岸は v3 で kgd_catalonia に分離)
 
 # ============================================================
-# 連邦 (fed) → British-Nordic Union: 10 州
+# 連邦 (fed) → British-Nordic Union: 22 州 (v7: 英国諸島13 + 北欧7 + 島嶼2)
 # ============================================================
-# fed_capital をロンドンに移転。英国諸島＋スカンジナビア。
-# 既存隣接: capital ↔ norway/sweden/gothland/denmark
-# 新地理:   capital(イングランド南) ↔ norway(ノルウェー)/sweden(スウェーデン中部)/
-#           gothland(スウェーデン南＋アイルランド扱い)/denmark(デンマーク)
-#           northland/karelia/finland は北欧、iceland はアイスランド、faroe は空。
+# 英国諸島を 13 州に分割: London/SE 分離・Scotland 高低分割・Ireland 3 分割。
+# capital は fed_london。海峡接続は fed_southeast(↔大陸) / fed_highlands(↔ノルウェー) /
+# fed_london(↔デンマーク) / アイルランド海 (n_ireland ↔ lowlands/england_n, wales ↔ leinster)。
 
-fed_capital:
-  name: 連邦首都
+fed_london:
+  name: ロンドン首都圏
   nation: fed
-  admin1: ["GB-LND", "GB-WSM", "GB-CMD", "GB-ISL", "GB-HCK", "GB-TWH", "GB-GRE", "GB-LBH", "GB-SWK", "GB-WND", "GB-MRT", "GB-KTT", "GB-RIC", "GB-HNS", "GB-EAL", "GB-HMF", "GB-KEC", "GB-BEN", "GB-BRY", "GB-CRY", "GB-LEW", "GB-NWM", "GB-BDG", "GB-HAV", "GB-RDB", "GB-WFT", "GB-HRY", "GB-ENF", "GB-BNE", "GB-HRW", "GB-HIL", "GB-STN", "GB-BEX", "GB-BIR", "GB-SAW", "GB-DUD", "GB-WLL", "GB-WLV", "GB-MIK", "GB-LUT", "GB-BKM", "GB-CBF", "GB-BDF", "GB-HRT", "GB-OXF", "GB-SRY", "GB-WBK", "GB-WOK", "GB-BRC", "GB-WNM", "GB-SLG", "GB-RDG", "GB-HAM", "GB-POR", "GB-STH", "GB-ESS", "GB-SOS", "GB-THR", "GB-KEN", "GB-MDW"]
-  # ロンドン市・首都圏 + イングランド南東 + 中部ミッドランズ (英国本土の中核を首都州に)
+  admin1: ["GB-LND", "GB-WSM", "GB-CMD", "GB-ISL", "GB-HCK", "GB-TWH", "GB-GRE", "GB-LBH", "GB-SWK", "GB-WND", "GB-MRT", "GB-KTT", "GB-RIC", "GB-HNS", "GB-EAL", "GB-HMF", "GB-KEC", "GB-BEN", "GB-BRY", "GB-CRY", "GB-LEW", "GB-NWM", "GB-BDG", "GB-HAV", "GB-RDB", "GB-WFT", "GB-HRY", "GB-ENF", "GB-BNE", "GB-HRW", "GB-HIL", "GB-STN", "GB-BEX"]
+  # グレーター・ロンドン 33 区
 
-fed_norway:
-  name: ノルウェー
+fed_southeast:
+  name: 南東イングランド
   nation: fed
-  admin1: ["NO-01", "NO-02", "NO-03", "NO-04", "NO-05", "NO-06", "NO-07", "NO-08", "NO-09", "NO-10", "NO-11", "NO-12", "NO-14", "NO-15", "NO-16"]
-  # ノルウェー南部〜中部 — 既存維持
+  admin1: ["GB-SRY", "GB-KEN", "GB-MDW", "GB-HAM", "GB-POR", "GB-STH", "GB-WBK", "GB-WOK", "GB-BRC", "GB-WNM", "GB-SLG", "GB-RDG", "GB-HRT", "GB-ESS", "GB-SOS", "GB-THR", "GB-OXF", "GB-BKM", "GB-MIK", "GB-LUT", "GB-CBF", "GB-BDF", "GB-BNH", "GB-WSX", "GB-ESX", "GB-IOW"]
+  # ホーム・カウンティーズ (Kent/Hampshire/Surrey/Sussex/Berkshire/Oxford/Herts/Essex 等)
+
+fed_england_s:
+  name: イングランド南西部
+  nation: fed
+  admin1: ["GB-DEV", "GB-TOB", "GB-PLY", "GB-CON", "GB-IOS", "GB-SOM", "GB-DOR", "GB-BMH", "GB-POL", "GB-WIL", "GB-SWD", "GB-BAS", "GB-BST", "GB-NSM", "GB-SGC", "GB-GLS"]
+  # Devon / Cornwall / Wessex (Somerset/Dorset/Wiltshire) + Bristol + Gloucestershire + Scilly
+
+fed_midlands:
+  name: ミッドランズ
+  nation: fed
+  admin1: ["GB-BIR", "GB-SAW", "GB-DUD", "GB-WLL", "GB-WLV", "GB-COV", "GB-STE", "GB-STS", "GB-TFW", "GB-SHR", "GB-WAR", "GB-WOR", "GB-HEF", "GB-LEC", "GB-LCE", "GB-RUT", "GB-NTH", "GB-PTE", "GB-NTT", "GB-NGM", "GB-DBY", "GB-DER", "GB-CAM", "GB-NFK", "GB-SFK", "GB-LIN", "GB-NLN", "GB-NEL"]
+  # West Midlands (Birmingham/Black Country/Coventry) + East Midlands + East Anglia
+
+fed_england_n:
+  name: イングランド北部
+  nation: fed
+  admin1: ["GB-CMA", "GB-NBL", "GB-DUR", "GB-HPL", "GB-NTY", "GB-STY", "GB-SND", "GB-RCC", "GB-BBD", "GB-LAN", "GB-BPL", "GB-BOL", "GB-BUR", "GB-MAN", "GB-OLD", "GB-RCH", "GB-TAM", "GB-WGN", "GB-SKP", "GB-TRF", "GB-WRT", "GB-WRL", "GB-HAL", "GB-KWL", "GB-LIV", "GB-SFT", "GB-SHN", "GB-CHE", "GB-CHW", "GB-SLF"]
+  # Cumbria + Northumberland + Tyne&Wear + Lancashire + Greater Manchester + Merseyside + Cheshire
+
+fed_yorkshire:
+  name: ヨークシャー
+  nation: fed
+  admin1: ["GB-NYK", "GB-YOR", "GB-ERY", "GB-KHL", "GB-LDS", "GB-BRD", "GB-WKF", "GB-CLD", "GB-KIR", "GB-BNS", "GB-DNC", "GB-ROT", "GB-SHF"]
+  # ヨークシャー 4 区 + Humberside
+
+fed_wales:
+  name: ウェールズ
+  nation: fed
+  admin1: ["GB-FLN", "GB-WRX", "GB-POW", "GB-CWY", "GB-DEN", "GB-GWN", "GB-AGY", "GB-CGN", "GB-CMN", "GB-PEM", "GB-SWA", "GB-NTL", "GB-BGE", "GB-VGL", "GB-CRF", "GB-NWP", "GB-MON", "GB-CAY", "GB-RCT", "GB-BGW", "GB-TOF", "GB-MTY"]
+  # ウェールズ全 22 自治体
+
+fed_lowlands:
+  name: スコットランド低地
+  nation: fed
+  admin1: ["GB-SCB", "GB-DGY", "GB-CLK", "GB-STG", "GB-FAL", "GB-WLN", "GB-EDH", "GB-MLN", "GB-ELN", "GB-FIF", "GB-PKN", "GB-DND", "GB-ANS", "GB-WDU", "GB-RFW", "GB-IVC", "GB-NAY", "GB-SAY", "GB-GLG", "GB-ERW", "GB-EAY", "GB-SLK", "GB-EDU", "GB-NLK"]
+  # セントラル・ベルト (Edinburgh/Glasgow) + Borders + Dumfries
+
+fed_highlands:
+  name: スコットランド高地
+  nation: fed
+  admin1: ["GB-HLD", "GB-AGB", "GB-ABE", "GB-ABD", "GB-MRY"]
+  # Highland + Argyll&Bute + Aberdeen市/州 + Moray
+
+fed_n_ireland:
+  name: 北アイルランド
+  nation: fed
+  admin1: ["GB-BFS", "GB-ARD", "GB-DOW", "GB-MFT", "GB-OMH", "GB-CKT", "GB-CGV", "GB-BNB", "GB-ANT", "GB-LSB", "GB-BLY", "GB-BLA", "GB-CSR", "GB-DRY", "GB-STB", "GB-FER", "GB-DGN", "GB-ARM", "GB-NYM", "GB-LMV", "GB-CLR", "GB-MYL", "GB-LRN", "GB-CKF", "GB-NTA", "GB-NDN"]
+  # 北アイルランド全 26 自治体
+
+fed_ire_leinster:
+  name: レンスター
+  nation: fed
+  admin1: ["IE-D", "IE-WW", "IE-WX", "IE-KK", "IE-WH", "IE-MH", "IE-KE", "IE-CW", "IE-LS", "IE-OY", "IE-LD", "IE-LH"]
+  # 歴史的州レンスター: Dublin + 東部 12 県
+
+fed_ire_munster:
+  name: マンスター
+  nation: fed
+  admin1: ["IE-CO", "IE-KY", "IE-LK", "IE-CE", "IE-WD", "IE-TA"]
+  # 歴史的州マンスター: Cork + Kerry + Limerick + Clare + Waterford + Tipperary (6 県)
+
+fed_ire_connacht:
+  name: コノート
+  nation: fed
+  admin1: ["IE-G", "IE-MO", "IE-SO", "IE-RN", "IE-CN", "IE-MN", "IE-LM", "IE-DL"]
+  # 歴史的州コノート + 南部 Ulster (Cavan/Monaghan/Donegal): Galway 等西部 8 県
+
+fed_norway_se:
+  name: ノルウェー南東
+  nation: fed
+  admin1: ["NO-01", "NO-02", "NO-03", "NO-04", "NO-05", "NO-06", "NO-07", "NO-08", "NO-09", "NO-10"]
+  # オスロ (NO-03) + Akershus/Østfold/Hedmark/Oppland/Buskerud/Vestfold/Telemark/Aust-Agder/Vest-Agder
+
+fed_norway_w:
+  name: ノルウェー西部
+  nation: fed
+  admin1: ["NO-11", "NO-12", "NO-14", "NO-15"]
+  # ベルゲン (NO-12) + Rogaland/Sogn og Fjordane/Møre og Romsdal (西海岸)
+
+fed_trondelag:
+  name: トロンデラーグ
+  nation: fed
+  admin1: ["NO-16"]
+  # Sør-Trøndelag (Trondheim 中心、中部内陸)
 
 fed_sweden:
   name: スウェーデン
   nation: fed
-  admin1: ["SE-AB", "SE-C", "SE-D", "SE-U", "SE-W", "SE-T", "SE-X", "SE-S", "SE-Y", "SE-Z"]
-  # ストックホルム + 中部スウェーデン (旧 fed_capital のストックホルムを吸収)
+  admin1: ["SE-AB", "SE-C", "SE-D", "SE-U"]
+  # ストックホルム首都圏: Stockholm/Uppsala/Södermanland/Västmanland
+
+fed_svealand:
+  name: スヴェアランド
+  nation: fed
+  admin1: ["SE-W", "SE-T", "SE-S"]
+  # 中央内陸: Dalarna/Örebro/Värmland (ノルウェー国境)
+
+fed_norrland_s:
+  name: 南ノルランド
+  nation: fed
+  admin1: ["SE-X", "SE-Y", "SE-Z"]
+  # 南ノルランド: Gävleborg/Västernorrland/Jämtland
 
 fed_gothland:
   name: ゴートランド
   nation: fed
-  admin1: ["SE-O", "SE-F", "SE-G", "SE-H", "SE-I", "SE-N", "SE-E", "SE-M", "SE-K", "IE-D", "IE-WW", "IE-WX", "IE-KK", "IE-WD", "IE-CO", "IE-KY", "IE-LK", "IE-CE", "IE-G", "IE-MO", "IE-SO", "IE-MH", "IE-KE", "IE-CW", "IE-LS", "IE-OY", "IE-WH", "IE-LD", "IE-RN", "IE-LH", "IE-CN", "IE-MN", "IE-LM", "IE-DL", "IE-TA"]
-  # 南スウェーデン本土+島 (Skåne/Blekinge含む) + アイルランド全土 (連邦の海洋飛び地として)
+  admin1: ["SE-O", "SE-F", "SE-G", "SE-H", "SE-I", "SE-N", "SE-E", "SE-M", "SE-K"]
+  # 南スウェーデン本土+島 (Skåne/Blekinge含む)。アイルランド系は fed_ire_* に分離 (v7)
 
 fed_denmark:
   name: デンマーク
@@ -232,14 +388,56 @@ fed_finland:
 fed_northland:
   name: ノルトランド
   nation: fed
-  admin1: ["NO-17", "NO-18", "NO-19", "NO-20", "NO-21", "SE-AC", "SE-BD"]
-  # 北極圏 (Svalbard NO-21 を追加) — ほぼ既存
+  admin1: ["NO-17", "NO-18"]
+  # ノルウェー北部南側: ノルランド + トロムス
 
-fed_karelia:
-  name: カレリア
+fed_northland_n:
+  name: フィンマルク
   nation: fed
-  admin1: ["FI-05", "FI-10", "FI-13", "FI-14", "FI-15"]
-  # 北フィンランド — 既存維持
+  admin1: ["NO-19", "NO-20"]
+  # ノルウェー最北端: フィンマルク（北極圏）
+
+fed_norrbotten:
+  name: ノルボッテン
+  nation: fed
+  admin1: ["SE-AC", "SE-BD"]
+  # スウェーデン最北 (Västerbotten / Norrbotten)
+
+fed_svalbard:
+  name: スヴァールバル
+  nation: fed
+  admin1: ["NO-21"]
+  # 北極圏離島 (Svalbard og Jan Mayen)
+
+fed_lapland:
+  name: ラップランド
+  nation: fed
+  admin1: ["FI-10"]
+  # Lapland — 最北、ノルウェー/スウェーデン/ロシア国境
+
+fed_ostrobothnia_n:
+  name: 北ポフヤンマー
+  nation: fed
+  admin1: ["FI-14"]
+  # Northern Ostrobothnia — 北西、ボスニア湾岸
+
+fed_kainuu:
+  name: カイヌー
+  nation: fed
+  admin1: ["FI-05"]
+  # Kainuu — 東中、ロシア国境
+
+fed_karelia_n:
+  name: 北カレリア
+  nation: fed
+  admin1: ["FI-13"]
+  # North Karelia — 南東、ロシア国境
+
+fed_savonia_n:
+  name: 北サヴォ
+  nation: fed
+  admin1: ["FI-15"]
+  # Northern Savonia — 南西、内陸
 
 fed_iceland:
   name: アイスランド
@@ -250,8 +448,8 @@ fed_iceland:
 fed_faroe:
   name: フェロー諸島
   nation: fed
-  admin1: ["GB-ZET", "GB-ORK", "GB-ELS", "GB-IOS"]
-  # フェロー代替: シェトランド+オークニー+ヘブリディーズ+シリー諸島 (英国北方の小島群)
+  admin1: ["GB-ZET", "GB-ORK", "GB-ELS"]
+  # フェロー代替: シェトランド + オークニー + ヘブリディーズ (英国北方の小島群)。Scilly は fed_england_s へ
 
 # ============================================================
 # 共和国 (rep) → German-Austrian Empire: 10 州
@@ -499,90 +697,195 @@ dch_ragusa:
   admin1: ["ME-16", "ME-02", "ME-10", "ME-05", "ME-08", "ME-19", "ME-20", "ME-06", "ME-12", "ME-07", "ME-15", "ME-14", "ME-21", "ME-09", "ME-11", "ME-13", "ME-01", "ME-03", "ME-04", "ME-17", "ME-18"]
   # モンテネグロ全 21 県 (旧 neu_adriatic の地理を移植)
 
+dch_anatolia_coast:
+  name: エーゲ海岸
+  nation: dch
+  admin1: ["TR-17", "TR-10", "TR-16", "TR-22", "TR-39", "TR-59", "TR-35", "TR-09", "TR-48", "TR-45", "TR-20", "TR-64"]
+  # トラキア欧州側 + エーゲ海岸: チャナッカレ + バルケシル + ブルサ + エディルネ + クルクラーレリ + テキルダー + イズミル + アイドゥン + ムーラ + マニサ + デニズリ + ウシャク
+
 dch_anatolia:
-  name: アナトリア
+  name: アナトリア高原
   nation: dch
-  admin1: ["TR-17", "TR-10", "TR-16", "TR-22", "TR-39", "TR-59", "TR-35", "TR-09", "TR-48", "TR-07", "TR-33", "TR-01", "TR-06", "TR-26", "TR-18", "TR-78", "TR-37", "TR-74", "TR-67", "TR-57", "TR-05", "TR-19", "TR-60", "TR-58", "TR-43", "TR-42", "TR-70", "TR-51", "TR-38", "TR-32", "TR-45", "TR-20", "TR-15", "TR-68", "TR-50", "TR-66", "TR-40", "TR-64", "TR-24", "TR-62", "TR-03", "TR-71", "TR-46", "TR-49", "TR-25", "TR-44", "TR-23", "TR-13", "TR-12", "TR-80", "TR-02", "TR-21", "TR-72", "TR-56", "TR-69", "TR-29", "TR-55", "TR-52", "TR-28", "TR-53", "TR-61", "TR-08", "TR-75", "TR-36", "TR-76", "TR-04", "TR-65", "TR-47", "TR-63", "TR-79", "TR-27", "TR-31", "TR-30", "TR-73"]
-  # トルコ本土全 74 県 (西北の dch_capital 7 県を除く)
+  admin1: ["TR-06", "TR-26", "TR-43", "TR-42", "TR-70", "TR-38", "TR-51", "TR-68", "TR-50", "TR-66", "TR-40", "TR-18", "TR-32", "TR-15", "TR-07", "TR-33", "TR-01", "TR-78", "TR-37", "TR-74", "TR-67", "TR-57", "TR-05", "TR-19", "TR-60", "TR-58"]
+  # アナトリア高原: アンカラ + エスキシェヒル + キュタヒャ + コンヤ + カラマン + カイセリ + ニーデ + アクサライ + ネヴシェヒル + ヨズガット + シヴァス + チョルム + アフョンカラヒサール + バルドゥル + アンタルヤ + メルスィン + アダナ + カフラマンマラシュ + カスタモヌ + バルトゥン + ジャンクル + シノプ + アマスヤ + トカット + サムスン + オルドゥ
 
-dch_egypt:
-  name: エジプト
+dch_anatolia_e:
+  name: 東アナトリア
   nation: dch
-  admin1: ["EG-SIN", "EG-ASN", "EG-BA", "EG-MT", "EG-WAD", "EG-SUZ", "EG-JS", "EG-PTS", "EG-DK", "EG-SHR", "EG-IS", "EG-DT", "EG-KFS", "EG-BH", "EG-ALX", "EG-C", "EG-GZ", "EG-MN", "EG-FYM", "EG-BNS", "EG-MNF", "EG-KB", "EG-GH", "EG-SHG", "EG-KN", "EG-AST", "EG-LX"]
-  # エジプト全 27 県
+  admin1: ["TR-24", "TR-62", "TR-03", "TR-71", "TR-46", "TR-49", "TR-25", "TR-44", "TR-23", "TR-13", "TR-12", "TR-80", "TR-02", "TR-21", "TR-72", "TR-56", "TR-69", "TR-29", "TR-55", "TR-52", "TR-28", "TR-53", "TR-61", "TR-08", "TR-75", "TR-36", "TR-76", "TR-04", "TR-65", "TR-47", "TR-63", "TR-79", "TR-27", "TR-31", "TR-30", "TR-73"]
+  # 東アナトリア: タウロス〜アルメニア高地・黒海東岸
 
-dch_libya:
-  name: リビア
+dch_egypt_delta:
+  name: エジプト・デルタ
   nation: dch
-  admin1: ["LY-GD", "LY-NQ", "LY-KF", "LY-MQ", "LY-BU", "LY-AJ", "LY-WS", "LY-GT", "LY-SR", "LY-MI", "LY-MB", "LY-TN", "LY-ZA", "LY-QB", "LY-JA", "LY-MJ", "LY-BA", "LY-JI", "LY-MZ", "LY-JU", "LY-SB", "LY-WD"]
-  # リビア全 22 県
+  admin1: ["EG-C", "EG-GZ", "EG-MNF", "EG-KB", "EG-GH", "EG-DT", "EG-DK", "EG-KFS", "EG-BH", "EG-ALX"]
+  # カイロ + ナイルデルタ: カイロ市 + ギーザ + メヌーフィーヤ + カルユービーヤ + ガルビーヤ + ダカフリーヤ + ダミエッタ + カフルシェイク + ブフェイラ + アレクサンドリア
 
-dch_maghreb:
-  name: マグレブ
+dch_egypt_nile:
+  name: 上エジプト
   nation: dch
-  admin1: ["MA-01", "MA-02", "MA-04", "MA-06", "MA-03", "MA-13", "MA-05", "MA-07", "MA-09", "MA-08", "MA-10", "MA-11", "MA-12", "MA-14", "MA-15", "MA-16", "DZ-13", "DZ-31", "DZ-22", "DZ-46", "DZ-29", "DZ-14", "DZ-38", "DZ-26", "DZ-44", "DZ-42", "DZ-16", "DZ-35", "DZ-09", "DZ-10", "DZ-15", "DZ-06", "DZ-18", "DZ-21", "DZ-23", "DZ-25", "DZ-19", "DZ-34", "DZ-43", "DZ-05", "DZ-40", "DZ-24", "DZ-36", "DZ-12", "DZ-41", "DZ-04", "DZ-28", "DZ-17", "DZ-39", "DZ-30", "DZ-47", "DZ-03", "DZ-20", "DZ-32", "DZ-45", "DZ-08", "DZ-01", "DZ-27", "DZ-02", "DZ-48", "DZ-37", "DZ-33", "DZ-11", "TN-11", "TN-13", "TN-14", "TN-22", "TN-21", "TN-23", "TN-31", "TN-32", "TN-33", "TN-34", "TN-41", "TN-42", "TN-43", "TN-51", "TN-52", "TN-53", "TN-61", "TN-71", "TN-72", "TN-73", "TN-81", "TN-82", "TN-83"]
-  # モロッコ + アルジェリア + チュニジア (北アフリカ西部)
+  admin1: ["EG-MN", "EG-FYM", "EG-BNS", "EG-SHG", "EG-KN", "EG-AST", "EG-LX"]
+  # ナイル上流: ミニャ + ファイユーム + ベニスウェーフ + ソハーグ + ケナ + アスユート + ルクソール
+
+dch_sinai:
+  name: シナイ半島
+  nation: dch
+  admin1: ["EG-SIN", "EG-JS", "EG-SHR", "EG-IS", "EG-PTS", "EG-SUZ"]
+  # シナイ半島 + スエズ運河地帯: 北シナイ + 南シナイ + 紅海 + イスマイリーヤ + ポートサイド + スエズ
+
+dch_egypt_w:
+  name: 西方砂漠
+  nation: dch
+  admin1: ["EG-ASN", "EG-BA", "EG-MT", "EG-WAD"]
+  # 西方砂漠 + アスワン: アスワン + 紅海州（東部）+ マトルーフ + 新ヴァッレー
+
+dch_tripolitania:
+  name: トリポリタニア
+  nation: dch
+  admin1: ["LY-GD", "LY-NQ", "LY-ZA", "LY-QB", "LY-TN"]
+  # リビア西部沿岸: トリポリ + ナルート + ザーウィヤ + ムスラータ + タルフーナ
+
+dch_cyrenaica:
+  name: キレナイカ
+  nation: dch
+  admin1: ["LY-MQ", "LY-BU", "LY-AJ", "LY-KF"]
+  # リビア東部沿岸: マルジュ + ベンガジ + アジュダービヤ + クフラ
+
+dch_fezzan_w:
+  name: フェザーン西部
+  nation: dch
+  admin1: ["LY-WS", "LY-GT", "LY-SR", "LY-MI", "LY-WD", "LY-JI"]
+  # フェザーン西部: ワーディシャーティ + ガート + サブラータ + ムルクブ + ワーディルハヤート + ジファーラ
+
+dch_fezzan_e:
+  name: フェザーン東部
+  nation: dch
+  admin1: ["LY-MZ", "LY-JU", "LY-SB", "LY-MB", "LY-JA", "LY-MJ", "LY-BA"]
+  # フェザーン東部: ムルズク + ジュフラ + サビーハ + ミスラータ南 + ジャバルアフダル + ムルジュ + バトナン
+
+dch_morocco_n:
+  name: モロッコ北部
+  nation: dch
+  admin1: ["MA-01", "MA-02", "MA-04", "MA-06", "MA-03", "MA-13", "MA-12", "MA-14"]
+  # モロッコ北部: タンジェ + オリエンタル + フェズ + マラケシュ + グランドカサブランカ + ラバト + ドゥッカーラ + テタウン
+
+dch_morocco_s:
+  name: モロッコ南部
+  nation: dch
+  admin1: ["MA-05", "MA-07", "MA-09", "MA-08", "MA-10", "MA-11", "MA-15", "MA-16"]
+  # モロッコ南部・サハラ: メクネス + アガディール + ウルザザート + ドラア + タフィラルト + スース + ギルミム + ラーユーン
+
+dch_tunisia:
+  name: チュニジア
+  nation: dch
+  admin1: ["TN-11", "TN-13", "TN-14", "TN-22", "TN-21", "TN-23", "TN-31", "TN-32", "TN-33", "TN-34", "TN-41", "TN-42", "TN-43", "TN-51", "TN-52", "TN-53", "TN-61", "TN-71", "TN-72", "TN-73", "TN-81", "TN-82", "TN-83"]
+  # チュニジア全域
+
+dch_algeria_nw:
+  name: アルジェリア西部
+  nation: dch
+  admin1: ["DZ-31", "DZ-22", "DZ-46", "DZ-13", "DZ-29", "DZ-20", "DZ-38", "DZ-45", "DZ-27", "DZ-02"]
+  # アルジェリア北西部: オラン + シディベルアッバース + ウアルグラ + ティアレット + マスカラ + サイーダ + ティシムスィール + タレムサン + ムスタガネム + ケンシュラ
+
+dch_algeria_n:
+  name: アルジェリア北部
+  nation: dch
+  admin1: ["DZ-16", "DZ-42", "DZ-35", "DZ-09", "DZ-44", "DZ-26", "DZ-14", "DZ-10", "DZ-15", "DZ-06", "DZ-28", "DZ-48"]
+  # アルジェリア北部中央: アルジェ + ティパザ + ブーメルデス + ブリダ + アインデフラ + メディア + ティジウズー + ブアーラリジュ + ティーズィーウズー + ベジャイア + ムシラ + ルラーグ
+
+dch_algeria_ne:
+  name: アルジェリア東部
+  nation: dch
+  admin1: ["DZ-25", "DZ-23", "DZ-18", "DZ-21", "DZ-19", "DZ-34", "DZ-43", "DZ-05", "DZ-40", "DZ-24", "DZ-36", "DZ-12", "DZ-41", "DZ-04"]
+  # アルジェリア北東部: コンスタンティーヌ + アンナバ + ジジェル + スキクダ + セティフ + ブルジュブアレリジュ + ウムアルブワギー + バトナ + フラソアセ + ゲルマ + エルタレフ + タルカ・ノルド + ソウク・アフラス + ハンシュラ
+
+dch_algeria_s:
+  name: アルジェリア内陸
+  nation: dch
+  admin1: ["DZ-47", "DZ-30", "DZ-03", "DZ-17", "DZ-39", "DZ-08", "DZ-01", "DZ-37", "DZ-33", "DZ-11", "DZ-32"]
+  # アルジェリア南部サハラ: ガルダイア + ウアルグラ + ラゲワット + ジェルファ + エルウェド + ベシャル + アドラル + イリジ + タマンラセット + タムアルセット + エルバヤド
 
 # ============================================================
-# 中立 (neutral) → 国境緩衝: 10 州
+# 旧中立 (v7 で各国に編入): 名称は据え置き、所属だけ各国に
 # ============================================================
-# 画像の国境隙間に対応する admin1 を割当。
-# 全領域の網羅性を確保しつつ、既存中立 10 州 ID を温存。
 
 neu_rhine:
   name: ライン回廊
-  nation: neutral
-  admin1: ["LU-L", "LU-D", "LU-G", "BE-VWV", "BE-VOV", "BE-VBR", "BE-VAN", "BE-VLI", "BE-BRU", "BE-WHT", "BE-WBR", "BE-WNA", "BE-WLG", "BE-WLX", "NL-LI", "NL-NB", "NL-ZE", "NL-ZH", "NL-NH", "NL-UT", "NL-GE", "NL-OV", "NL-FL", "NL-DR", "NL-FR", "NL-GR"]
-  # ベネルクス全土 (低地諸国を中立緩衝として一体化)
+  nation: kgd
+  admin1: ["LU-L", "LU-D", "LU-G", "BE-BRU", "BE-WHT", "BE-WBR", "BE-WNA", "BE-WLG", "BE-WLX", "NL-LI", "NL-NB", "NL-ZE", "NL-ZH", "NL-NH", "NL-UT", "NL-GE", "NL-OV", "NL-FL", "NL-DR", "NL-FR", "NL-GR"]
+  # ルクセンブルク + ベルギー仏語圏 + オランダ全土 → 王国領
 
 neu_alps:
   name: アルプス山中
-  nation: neutral
+  nation: rep
   admin1: ["CH-BE", "CH-VS", "CH-GE", "CH-VD", "CH-FR", "CH-NE", "CH-JU", "CH-GR", "CH-TI", "CH-UR", "CH-OW", "CH-NW", "CH-SZ", "CH-GL", "CH-LU", "CH-ZG", "CH-AG", "CH-SO", "CH-BL", "CH-BS", "CH-ZH", "CH-SH", "CH-TG", "CH-SG", "CH-AR", "CH-AI"]
-  # スイス全 26 州 — 既存維持 (rep 独墺の南/kgd 仏の東 国境緩衝)
+  # スイス全 26 州 → 共和国領
 
 neu_flanders:
   name: フランドル
-  nation: neutral
-  admin1: ["GB-FLN", "GB-WRX", "GB-POW", "GB-CWY", "GB-DEN", "GB-GWN", "GB-AGY", "GB-CGN", "GB-CMN", "GB-PEM", "GB-SWA", "GB-NTL", "GB-BGE", "GB-VGL", "GB-CRF", "GB-NWP", "GB-MON", "GB-CAY", "GB-RCT", "GB-BGW", "GB-TOF", "GB-MTY"]
-  # ウェールズ全土 (旧 fed_capital とは別、英国諸島内の中立緩衝)
+  nation: kgd
+  admin1: ["BE-VWV", "BE-VOV", "BE-VAN", "BE-VBR", "BE-VLI"]
+  # ベルギー北部フランダース 5 州 → 王国領
 
 neu_baltic:
   name: バルト沿岸
-  nation: neutral
+  nation: emp
   admin1: ["EE-37", "EE-44", "EE-49", "EE-39", "EE-51", "EE-57", "EE-59", "EE-65", "EE-67", "EE-70", "EE-74", "EE-78", "EE-82", "EE-84", "EE-86", "LV-RIX", "LV-DGV", "LV-JEL", "LV-JKB", "LV-VEN", "LV-LPX", "LV-REZ", "LV-VMR", "LV-JUR", "LT-VL", "LT-KU", "LT-KL", "LT-PN", "LT-SA", "LT-UT", "LT-AL", "LT-MR", "LT-TA", "LT-TE"]
-  # バルト三国 (エストニア + ラトビア主要市 + リトアニア) — emp 西辺境と fed 連邦の間の緩衝
+  # バルト三国 → 帝国領
 
 neu_adriatic:
   name: アドリア海岸
-  nation: neutral
+  nation: hol
   admin1: ["BA-BIH", "BA-SRP", "BA-BRC"]
-  # ボスニア・ヘルツェゴビナ全土 (hol 墺領と dch 公国の間の緩衝)
+  # ボスニア・ヘルツェゴビナ全土 → 聖王国領
 
 neu_pyrenees:
   name: ピレネー
-  nation: neutral
-  admin1: ["GB-SCB", "GB-NBL", "GB-CMA", "GB-DGY", "GB-CLK", "GB-STG", "GB-FAL", "GB-WLN", "GB-EDH", "GB-MLN", "GB-ELN", "GB-FIF", "GB-PKN", "GB-DND", "GB-ANS", "GB-ABE", "GB-ABD", "GB-MRY", "GB-HLD", "GB-AGB", "GB-WDU", "GB-RFW", "GB-IVC", "GB-NAY", "GB-SAY", "GB-GLG", "GB-ERW", "GB-EAY", "GB-SLK", "GB-EDU", "GB-NLK", "GB-NTY", "GB-STY", "GB-SND", "GB-DUR", "GB-HPL", "GB-RCC", "GB-NYK", "GB-ERY", "GB-KHL", "GB-NLN", "GB-NEL", "GB-LIN", "GB-NFK", "GB-SFK", "GB-CAM", "GB-PTE", "GB-NTH", "GB-RUT", "GB-LEC", "GB-NTT", "GB-DBY", "GB-CHE", "GB-CHW", "GB-SHR", "GB-STE", "GB-STS", "GB-TFW", "GB-WAR", "GB-WOR", "GB-HEF", "GB-GLS", "GB-WIL", "GB-SWD", "GB-BAS", "GB-BST", "GB-NSM", "GB-SGC", "GB-SOM", "GB-DOR", "GB-BMH", "GB-POL", "GB-DEV", "GB-TOB", "GB-PLY", "GB-CON", "GB-WSX", "GB-BNH", "GB-ESX", "GB-IOW", "GB-BBD", "GB-LAN", "GB-BPL", "GB-LDS", "GB-BRD", "GB-WKF", "GB-CLD", "GB-KIR", "GB-BNS", "GB-DNC", "GB-ROT", "GB-SHF", "GB-NGM", "GB-DER", "GB-LCE", "GB-SLF", "GB-BOL", "GB-TRF", "GB-MAN", "GB-OLD", "GB-RCH", "GB-TAM", "GB-BUR", "GB-WGN", "GB-SKP", "GB-WRT", "GB-WRL", "GB-HAL", "GB-KWL", "GB-LIV", "GB-SFT", "GB-SHN", "GB-YOR", "GB-DRY", "GB-STB", "GB-FER", "GB-DGN", "GB-ARM", "GB-NYM", "GB-LMV", "GB-CLR", "GB-MYL", "GB-LRN", "GB-CKF", "GB-NTA", "GB-BFS", "GB-NDN", "GB-ARD", "GB-DOW", "GB-MFT", "GB-OMH", "GB-CKT", "GB-CGV", "GB-BNB", "GB-ANT", "GB-LSB", "GB-BLY", "GB-BLA", "GB-CSR"]
-  # スコットランド + イングランド北部 + 北アイルランド (fed_capital の中核以外の英国本土を中立緩衝に)
-  # → 名前は据え置きで地理は英国北部一帯 (中立大ブロックとして広範囲)
+  nation: kgd
+  admin1: ["ES-NA"]
+  # ナバラ → 王国領
 
 neu_bohemia:
   name: ボヘミア
-  nation: neutral
-  admin1: ["PL-SL", "PL-MA", "PL-PK", "PL-DS", "PL-OP", "PL-LU", "PL-WP", "PL-LB", "PL-ZP", "PL-PM", "PL-WN", "PL-PD", "PL-MZ", "PL-LD", "PL-KP", "PL-SK", "BY-HO", "BY-BR", "BY-VI", "BY-HR", "BY-MA", "BY-MI", "BY-HM"]
-  # ポーランド全土 + ベラルーシ全土 (旧名「ボヘミア」のまま、emp と rep の間の東欧緩衝)
+  nation: emp
+  admin1: ["PL-SL", "PL-MA", "PL-PK", "PL-DS", "PL-OP", "PL-LU", "PL-WP", "PL-LB", "BY-BR", "BY-HO"]
+  # ポーランド南西部 + ベラルーシ南西: 帝国領
+
+neu_silesia:
+  name: シレジア北
+  nation: emp
+  admin1: ["PL-ZP", "PL-PM", "PL-WN", "PL-PD", "PL-MZ", "PL-LD", "PL-KP", "PL-SK", "BY-VI", "BY-HR", "BY-MA", "BY-MI", "BY-HM"]
+  # ポーランド北東部 + ベラルーシ東部: バルト〜ロシア境界
 
 neu_danube:
   name: ドナウ平原
-  nation: neutral
-  admin1: ["SK-BL", "SK-NI", "SK-TA", "SK-TC", "SK-ZI", "SK-BC", "SK-PV", "SK-KI", "UA-46", "UA-21", "UA-26", "UA-77", "UA-61", "UA-68", "UA-05", "UA-07", "UA-56", "UA-18", "UA-32", "UA-30", "UA-71", "UA-35", "UA-48", "UA-51", "UA-53", "UA-12", "UA-23", "UA-65", "UA-43", "UA-40", "UA-14", "UA-09", "UA-63", "UA-59", "UA-74"]
-  # スロバキア全土 + ウクライナ全土 (emp ロシアと rep 独墺/hol 墺南領の間)
+  nation: emp
+  admin1: ["SK-BL", "SK-NI", "SK-TA", "SK-TC", "SK-ZI", "SK-BC", "SK-PV", "SK-KI", "UA-46", "UA-21", "UA-26", "UA-77", "UA-61", "UA-68", "UA-05", "UA-07", "UA-56"]
+  # スロバキア全土 + ウクライナ西部（カルパティア〜ドニプロ西岸）
+
+neu_dnipro_n:
+  name: ドニプロ北部
+  nation: emp
+  admin1: ["UA-30", "UA-32", "UA-18", "UA-09", "UA-59", "UA-74"]
+  # ウクライナ北西部: キエフ + ジトームィル + ヴィーンヌィツャ + チェルニーウ + スームィ + ハルキウ
+
+neu_steppe:
+  name: ウクライナ草原
+  nation: emp
+  admin1: ["UA-71", "UA-35", "UA-53", "UA-12", "UA-63", "UA-40"]
+  # 中央ステップ: チェルカースィ + キロヴォフラード + ポルタヴァ + ドニプロペトロウシク + ハルキウ周辺 + ザポリージャ
+
+neu_pontic:
+  name: 黒海草原
+  nation: emp
+  admin1: ["UA-48", "UA-51", "UA-23", "UA-65", "UA-43", "UA-14"]
+  # 黒海沿岸: ミコラーイウ + オデーサ + ヘルソン + クリミア + ドネツク + ルハンシク
 
 neu_corsica:
   name: コルシカ
-  nation: neutral
+  nation: kgd
   admin1: ["FR-2A", "FR-2B"]
-  # コルシカ — 既存維持
+  # コルシカ → 王国領
 
 # ============================================================
 # 新規 (v3): 王国のイベリア領 — 6 分割
@@ -639,8 +942,8 @@ kgd_baleares:
 kgd_basque:
   name: バスク・ナバラ王領
   nation: kgd
-  admin1: ["ES-NA", "ES-LO", "ES-VI", "ES-SS", "ES-BI", "ES-O", "ES-S", "ES-OR", "ES-LU", "ES-C", "ES-PO"]
-  # ナバラ + ラ・リオハ + バスク 3 県 + アストゥリアス + カンタブリア + ガリシア 4 県
+  admin1: ["ES-LO", "ES-VI", "ES-SS", "ES-BI", "ES-O", "ES-S", "ES-OR", "ES-LU", "ES-C", "ES-PO"]
+  # ラ・リオハ + バスク 3 県 + アストゥリアス + カンタブリア + ガリシア 4 県 (ナバラは neu_pyrenees に移譲)
 
 kgd_portugal_w:
   name: ポルトガル王領

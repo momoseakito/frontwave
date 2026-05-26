@@ -26,7 +26,6 @@ export interface StateStatus {
   industryLevel: number;
   underAttack: boolean;
   attackerId: string | null;
-  neutralizedUntil: number;
   upgradeInProgress: boolean;
   upgradeCompletesAt: number;
 }
@@ -167,7 +166,7 @@ export function createInitialState(
   const states: Record<string, StateStatus> = {};
 
   for (const def of STATES_DEF) {
-    const ownerId = INITIAL_STATE_OWNERS[def.id] ?? "neutral";
+    const ownerId = INITIAL_STATE_OWNERS[def.id]!;
     const terrain = (def.capitalOf ? "capital" : def.terrain) as Terrain;
     const isCapital = terrain === "capital";
     const industryLevel = isCapital ? 3 : terrain === "mountains" ? 2 : 1;
@@ -178,7 +177,6 @@ export function createInitialState(
       industryLevel,
       underAttack: false,
       attackerId: null,
-      neutralizedUntil: 0,
       upgradeInProgress: false,
       upgradeCompletesAt: 0,
     };
@@ -254,7 +252,6 @@ export function executeAttack(
 
   // 戦争状態が必須
   if (
-    target.ownerId !== "neutral" &&
     isDiplomaticPair(game.playerNationId, target.ownerId) &&
     getRelationStatus(game, game.playerNationId, target.ownerId) !== "war"
   ) {

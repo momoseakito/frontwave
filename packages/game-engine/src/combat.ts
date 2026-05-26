@@ -91,8 +91,6 @@ export function applyCombatDelta(
       continue;
     }
 
-    if (target.neutralizedUntil > game.elapsedSeconds) continue;
-
     if (source.ownerId !== attackerId) {
       resolvedTargets.push(targetStateId);
       continue;
@@ -131,7 +129,6 @@ export function applyCombatDelta(
           troops: capturedTroops,
           underAttack: false,
           attackerId: null,
-          neutralizedUntil: 0,
         },
       };
       resolvedTargets.push(targetStateId);
@@ -145,15 +142,15 @@ export function applyCombatDelta(
       });
 
       const atkName = NATION_DEF_MAP[attackerId]?.name ?? attackerId;
-      const defName = NATION_DEF_MAP[prevOwner]?.name ?? (prevOwner === "neutral" ? "中立" : prevOwner);
+      const defName = NATION_DEF_MAP[prevOwner]?.name ?? prevOwner;
       log = [`${atkName}が${defName}の${stateDef?.name ?? targetStateId}を占領！`, ...log].slice(0, 30);
 
-      if (prevOwner !== "neutral" && isDiplomaticPair(attackerId, prevOwner)) {
+      if (isDiplomaticPair(attackerId, prevOwner)) {
         escalationPairs.push([attackerId, prevOwner]);
       }
 
       // ストラテジーモード: 首都陥落で降伏
-      if (game.gameMode === "strategy" && stateDef?.capitalOf && stateDef.capitalOf !== "neutral") {
+      if (game.gameMode === "strategy" && stateDef?.capitalOf) {
         surrenderPairs.push([stateDef.capitalOf, attackerId]);
       }
     } else {

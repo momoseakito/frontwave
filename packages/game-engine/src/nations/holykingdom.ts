@@ -1,6 +1,6 @@
 import type { NationConfig } from "../map.js";
 
-// 聖王国 (hol): Österreichisches Reich / 伊・墺南領 15州
+// 聖王国 (hol): Österreichisches Reich / 伊・墺南領 16州 (本土15 + 旧中立1: アドリア)
 export const holykingdom: NationConfig = {
   id: "hol",
   name: "聖王国",
@@ -31,7 +31,10 @@ export const holykingdom: NationConfig = {
     { id: "hol_calabria_s",name:"カラブリア",    terrain: "mountains", neighbors: ["hol_lazio", "hol_campania", "hol_apulia"], straitTo: ["hol_palermo"] },
 
     // ---- 島嶼 ----
-    { id: "hol_sardinia", name: "サルデーニャ",  terrain: "coast",     isNeutral: false, neighbors: [], straitTo: ["neu_corsica", "hol_liguria", "dch_maghreb"] },
-    { id: "hol_palermo",  name: "シチリア",      terrain: "coast",     neighbors: [], straitTo: ["hol_calabria_s", "dch_maghreb"] },
+    { id: "hol_sardinia", name: "サルデーニャ",  terrain: "coast",     neighbors: [], straitTo: ["neu_corsica", "hol_liguria", "dch_morocco_n"] },
+    { id: "hol_palermo",  name: "シチリア",      terrain: "coast",     neighbors: [], straitTo: ["hol_calabria_s", "dch_morocco_n", "dch_tunisia", "dch_tripolitania"] },
+
+    // ---- 旧中立 (v7 で hol に編入) ----
+    { id: "neu_adriatic", name: "アドリア海岸",  terrain: "coast",     neighbors: ["rep_venice", "hol_veneto", "dch_croatia", "dch_ragusa"], straitTo: ["dch_albania"] },
   ],
 };

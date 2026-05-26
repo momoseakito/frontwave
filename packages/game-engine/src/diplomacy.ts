@@ -14,7 +14,6 @@ export function relationKey(a: string, b: string): string {
 
 export function isDiplomaticPair(a: string, b: string): boolean {
   if (a === b) return false;
-  if (a === "neutral" || b === "neutral") return false;
   if (!NATION_DEF_MAP[a] || !NATION_DEF_MAP[b]) return false;
   return true;
 }
