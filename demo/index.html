@@ -32,13 +32,19 @@
       z-index: 1;
     }
 
-    #mode-buttons {
+    #top-left-controls {
       position: absolute;
       top: 12px;
       left: 12px;
       display: flex;
+      flex-direction: column;
       gap: 6px;
       z-index: 10;
+    }
+
+    #mode-buttons {
+      display: flex;
+      gap: 6px;
     }
 
     .mode-btn {
@@ -56,6 +62,34 @@
       border-color: #facc15;
       background: rgba(234, 179, 8, 0.15);
       color: #fde047;
+    }
+
+    #speed-controls {
+      display: flex;
+      gap: 4px;
+    }
+
+    .speed-btn {
+      padding: 4px 10px;
+      border-radius: 5px;
+      border: 1px solid #475569;
+      background: rgba(15, 23, 42, 0.85);
+      color: #94a3b8;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      min-width: 32px;
+    }
+    .speed-btn:hover { background: rgba(51, 65, 85, 0.9); color: #e2e8f0; }
+    .speed-btn.active {
+      border-color: #facc15;
+      background: rgba(234, 179, 8, 0.15);
+      color: #fde047;
+    }
+    .speed-btn[data-speed="0"].active {
+      border-color: #f87171;
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
     }
 
     #info-panel {
@@ -319,9 +353,14 @@
   <div id="map-container">
     <canvas id="map"></canvas>
 
-    <div id="mode-buttons">
-      <button class="mode-btn active" data-mode="political">政治図</button>
-      <button class="mode-btn" data-mode="province">州図</button>
+    <div id="top-left-controls">
+
+      <div id="speed-controls">
+        <button class="speed-btn" data-speed="0" title="一時停止 [Space]">⏸</button>
+        <button class="speed-btn active" data-speed="1" title="通常速度 [1]">1×</button>
+        <button class="speed-btn" data-speed="2" title="2倍速 [2]">2×</button>
+        <button class="speed-btn" data-speed="4" title="4倍速 [3]">4×</button>
+      </div>
     </div>
 
     <div id="info-panel">

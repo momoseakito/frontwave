@@ -12,6 +12,7 @@ export class TickDriver {
     this.onTick = callbacks.onTick ?? (() => {});
     this._timer = 0;
     this._paused = false;
+    this._speed = 1;
   }
 
   start() {
@@ -29,28 +30,45 @@ export class TickDriver {
     this._paused = paused;
   }
 
+  setSpeed(n) {
+    this._speed = n;
+  }
+
+  togglePause() {
+    this._paused = !this._paused;
+  }
+
   _step() {
     if (this._paused) return;
-    const prev = this.state.engine;
-    const next = gameTick(prev);
-    this.state.setEngineState(next);
 
-    // Cheap owner-change check: compare the per-state ownerId. ~80 entries so
-    // this is sub-millisecond. If anything moved, repaint fills; selection /
-    // borders / HUD update via the normal frame path.
+    // Run _speed sub-ticks per interval to implement speed multiplier.
+    // Owner-change detection is aggregated across all sub-ticks to avoid
+    // redundant repaints.
     let ownerChanged = false;
-    for (const id of Object.keys(next.states)) {
-      if (prev.states[id]?.ownerId !== next.states[id]?.ownerId) {
-        ownerChanged = true;
-        break;
+    let lastNext = this.state.engine;
+    let lastPrev = this.state.engine;
+    for (let i = 0; i < this._speed; i++) {
+      const prev = this.state.engine;
+      const next = gameTick(prev);
+      this.state.setEngineState(next);
+      if (!ownerChanged) {
+        for (const id of Object.keys(next.states)) {
+          if (prev.states[id]?.ownerId !== next.states[id]?.ownerId) {
+            ownerChanged = true;
+            break;
+          }
+        }
       }
+      lastNext = next;
+      lastPrev = prev;
     }
+
     if (ownerChanged) {
       this.app.invalidateOwners();
     } else {
       this.app.requestFrame();
     }
 
-    this.onTick(next, prev);
+    this.onTick(lastNext, lastPrev);
   }
 }

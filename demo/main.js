@@ -57,6 +57,7 @@ const TERRAIN_JP = {
 const camera = new Camera(WORLD_W, WORLD_H);
 let gameState = null;   // chosen after start-screen
 let app = null;
+let driver = null;
 let mapDataRef = null;  // held so resize can refit to the same bbox
 const PLAYABLE_NATIONS = ["emp", "kgd", "rep", "hol", "fed", "dch"];
 
@@ -79,10 +80,13 @@ function fitMapToViewport(mapData) {
   const b = worldBounds(mapData.features);
   const w = window.innerWidth;
   const h = window.innerHeight;
+  camera.screenW = w;
+  camera.screenH = h;
   if (!b) {
     camera.fitTo(w, h);
     return;
   }
+  camera.mapBounds = b;
   const bw = b.w * (1 + 2 * VIEWPORT_MARGIN);
   const bh = b.h * (1 + 2 * VIEWPORT_MARGIN);
   const fit = Math.min(w / bw, h / bh);
@@ -92,6 +96,25 @@ function fitMapToViewport(mapData) {
   const cy = b.y + b.h / 2;
   camera.tx = w / 2 - cx * fit;
   camera.ty = h / 2 - cy * fit;
+}
+
+function focusOnNation(mapData, nationId) {
+  const nationFeatures = mapData.features.filter((f) => f.nation === nationId);
+  if (!nationFeatures.length) return;
+  const b = worldBounds(nationFeatures);
+  if (!b) return;
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  camera.screenW = w;
+  camera.screenH = h;
+  const bw = b.w * (1 + 2 * VIEWPORT_MARGIN);
+  const bh = b.h * (1 + 2 * VIEWPORT_MARGIN);
+  const fit = Math.min(w / bw, h / bh);
+  camera.scale = Math.max(fit, camera.minScale);
+  const cx = b.x + b.w / 2;
+  const cy = b.y + b.h / 2;
+  camera.tx = w / 2 - cx * camera.scale;
+  camera.ty = h / 2 - cy * camera.scale;
 }
 
 function onHover(rec, screenPos) {
@@ -300,14 +323,6 @@ function onRightClick(targetRec) {
   }
 }
 
-document.querySelectorAll(".mode-btn").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    const m = btn.dataset.mode;
-    document.querySelectorAll(".mode-btn").forEach((b) => b.classList.remove("active"));
-    btn.classList.add("active");
-    app?.setMode(m);
-  });
-});
 
 window.addEventListener("resize", () => {
   if (!mapDataRef) return;
@@ -315,6 +330,8 @@ window.addEventListener("resize", () => {
   if (!b) return;
   const w = window.innerWidth;
   const h = window.innerHeight;
+  camera.screenW = w;
+  camera.screenH = h;
   const bw = b.w * (1 + 2 * VIEWPORT_MARGIN);
   const bh = b.h * (1 + 2 * VIEWPORT_MARGIN);
   const fit = Math.min(w / bw, h / bh);
@@ -347,7 +364,10 @@ function updateHUD() {
   const elapsed = gameState?.engine?.elapsedSeconds ?? 0;
   const frameMs = app?.lastFrameMs ?? 0;
   const gold = gameState?.getPlayerFunds() ?? 0;
-  hud.textContent = `t=${formatElapsed(elapsed)}  gold=${gold}  scale=${camera.scale.toFixed(2)}x  frame=${frameMs.toFixed(1)}ms`;
+  const speedLabel = driver
+    ? (driver._paused ? "⏸ PAUSED" : `▶ ${driver._speed}×`)
+    : "";
+  hud.textContent = `${speedLabel}  t=${formatElapsed(elapsed)}  gold=${gold}  scale=${camera.scale.toFixed(2)}x  frame=${frameMs.toFixed(1)}ms`;
 }
 
 async function init(playerNationId) {
@@ -370,6 +390,7 @@ async function init(playerNationId) {
   await app.init();
 
   fitMapToViewport(mapData);
+  focusOnNation(mapData, playerNationId);
 
   new InputController(canvas, camera, app, hitTester, {
     onHover,
@@ -378,7 +399,7 @@ async function init(playerNationId) {
     onTick: updateHUD,
   });
 
-  const driver = new TickDriver(gameState, app, {
+  driver = new TickDriver(gameState, app, {
     onTick: (next, prev) => {
       const ids = [];
       for (const s of Object.values(next.states)) {
@@ -422,8 +443,46 @@ async function init(playerNationId) {
     },
   });
   driver.start();
-  window.addEventListener("blur", () => driver.setPaused(true));
-  window.addEventListener("focus", () => driver.setPaused(false));
+
+  const speedBtns = document.querySelectorAll(".speed-btn");
+
+  function setSpeedUI(speedValue) {
+    const paused = speedValue === 0;
+    driver.setPaused(paused);
+    if (!paused) driver.setSpeed(speedValue);
+    speedBtns.forEach((b) =>
+      b.classList.toggle("active", Number(b.dataset.speed) === speedValue)
+    );
+    updateHUD();
+  }
+
+  speedBtns.forEach((btn) =>
+    btn.addEventListener("click", () => setSpeedUI(Number(btn.dataset.speed)))
+  );
+
+  window.addEventListener("keydown", (e) => {
+    if (e.target !== document.body && e.target.tagName !== "CANVAS") return;
+    if (e.code === "Space") {
+      e.preventDefault();
+      setSpeedUI(driver._paused ? 1 : 0);
+    } else if (e.key === "1") setSpeedUI(1);
+    else if (e.key === "2") setSpeedUI(2);
+    else if (e.key === "3") setSpeedUI(4);
+  });
+
+  window.addEventListener("blur", () => {
+    driver.setPaused(true);
+    speedBtns.forEach((b) => b.classList.toggle("active", b.dataset.speed === "0"));
+  });
+  window.addEventListener("focus", () => {
+    driver.setPaused(false);
+    const cur = driver._speed;
+    speedBtns.forEach((b) =>
+      b.classList.toggle("active", Number(b.dataset.speed) === cur)
+    );
+  });
+
+  setSpeedUI(1);
 
   refreshDiplomacyPanel(true);
   app.requestFrame();

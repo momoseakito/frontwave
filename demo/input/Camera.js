@@ -22,6 +22,10 @@ export class Camera {
     this.ty = 0;
     this.minScale = 0.1;
     this.maxScale = 50;
+    this.screenW = 0;
+    this.screenH = 0;
+    // World-space bbox of the actual map content (set by caller after loading)
+    this.mapBounds = null; // { x, y, w, h }
     this._listeners = [];
   }
 
@@ -38,6 +42,8 @@ export class Camera {
 
   fitTo(screenW, screenH) {
     if (!isFiniteNum(screenW) || !isFiniteNum(screenH) || screenW <= 0 || screenH <= 0) return;
+    this.screenW = screenW;
+    this.screenH = screenH;
     const s = Math.min(screenW / this.worldW, screenH / this.worldH);
     this.minScale = s;
     this.scale = clamp(s, this.minScale, this.maxScale);
@@ -53,6 +59,7 @@ export class Camera {
     this.tx = screenX - (screenX - this.tx) * k;
     this.ty = screenY - (screenY - this.ty) * k;
     this.scale = ns;
+    this._clampPan();
     this._emit();
   }
 
@@ -60,7 +67,23 @@ export class Camera {
     if (!isFiniteNum(dx) || !isFiniteNum(dy)) return;
     this.tx += dx;
     this.ty += dy;
+    this._clampPan();
     this._emit();
+  }
+
+  _clampPan() {
+    const { screenW, screenH, scale, mapBounds } = this;
+    if (screenW <= 0 || screenH <= 0 || !mapBounds) return;
+    // Keep at least `margin` pixels of the map bbox visible on each axis.
+    const margin = Math.min(screenW, screenH) * 0.15;
+    // Map bbox in screen coords: left = tx + mapBounds.x * scale, right = left + mapBounds.w * scale
+    const mapLeft  = mapBounds.x * scale;
+    const mapTop   = mapBounds.y * scale;
+    const mapRight = (mapBounds.x + mapBounds.w) * scale;
+    const mapBot   = (mapBounds.y + mapBounds.h) * scale;
+    // tx must keep mapRight visible on the left side and mapLeft visible on the right side
+    this.tx = clamp(this.tx, screenW - margin - mapRight, margin - mapLeft);
+    this.ty = clamp(this.ty, screenH - margin - mapBot,   margin - mapTop);
   }
 
   screenToWorld(screenX, screenY) {
