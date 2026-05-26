@@ -1,6 +1,6 @@
 import type { NationConfig } from "../map.js";
 
-// 聖王国 (hol): Österreichisches Reich / 伊・墺南領 16州 (本土15 + 旧中立1: アドリア)
+// 聖王国 (hol): Österreichisches Reich / 伊・墺南領 terrain特化
 export const holykingdom: NationConfig = {
   id: "hol",
   name: "聖王国",
@@ -8,33 +8,36 @@ export const holykingdom: NationConfig = {
   capitalStateId: "hol_capital",
   specialty: "terrain",
   states: [
-    // ---- 墺領中欧 (旧 ID 温存) ----
-    { id: "hol_capital",  name: "聖王国首都",    terrain: "capital",   capitalOf: "hol", neighbors: ["hol_castile", "hol_aragon", "hol_navarre", "hol_catalonia"] },
-    { id: "hol_castile",  name: "カスティーリャ", terrain: "plains",    neighbors: ["hol_capital", "hol_aragon"] },
-    { id: "hol_aragon",   name: "アラゴン",      terrain: "mountains", neighbors: ["hol_capital", "hol_castile", "hol_catalonia"] },
-    { id: "hol_navarre",  name: "ナバラ",        terrain: "mountains", neighbors: ["hol_capital", "hol_catalonia"] },
-    { id: "hol_catalonia",name: "カタルーニャ",  terrain: "coast",     neighbors: ["hol_capital", "hol_navarre", "hol_aragon", "hol_veneto"] },
+    // ---- 墺領中欧 ----
+    { id: "hol_capital",    name: "聖王国首都",     terrain: "capital",   capitalOf: "hol", neighbors: ["hol_castile", "hol_aragon", "hol_navarre"] },
+    { id: "hol_castile",    name: "カスティーリャ", terrain: "plains",    neighbors: ["hol_capital", "hol_aragon"] },
+    { id: "hol_aragon",     name: "アラゴン",       terrain: "mountains", neighbors: ["hol_capital", "hol_castile"] },
+    { id: "hol_navarre",    name: "ナバラ",         terrain: "mountains", neighbors: ["hol_capital"] },
 
-    // ---- イタリア半島 (v5: 3 州 → 10 州に分割) ----
-    // 北イタリア
-    { id: "hol_lombardy", name: "ロンバルディア", terrain: "plains",    neighbors: ["hol_piedmont", "hol_veneto", "hol_emilia", "hol_liguria", "neu_alps"] },
-    { id: "hol_piedmont", name: "ピエモンテ",    terrain: "mountains", neighbors: ["hol_lombardy", "hol_liguria", "kgd_dauphine", "kgd_provence", "neu_alps"] },
-    { id: "hol_liguria",  name: "リグーリア",    terrain: "coast",     neighbors: ["hol_piedmont", "hol_lombardy", "hol_emilia", "hol_tuscany_n"], straitTo: ["neu_corsica"] },
-    // 中部イタリア
-    { id: "hol_veneto",   name: "ヴェネト",      terrain: "coast",     neighbors: ["hol_lombardy", "hol_emilia", "hol_catalonia", "neu_adriatic"] },
-    { id: "hol_emilia",   name: "エミリア",      terrain: "plains",    neighbors: ["hol_lombardy", "hol_veneto", "hol_liguria", "hol_tuscany_n", "hol_lazio"] },
-    { id: "hol_tuscany_n",name: "トスカーナ",    terrain: "plains",    neighbors: ["hol_liguria", "hol_emilia", "hol_lazio"] },
-    { id: "hol_lazio",    name: "ラツィオ",      terrain: "coast",     neighbors: ["hol_tuscany_n", "hol_emilia", "hol_campania", "hol_calabria_s"] },
-    // 南イタリア
-    { id: "hol_campania", name: "カンパーニャ",  terrain: "coast",     neighbors: ["hol_lazio", "hol_apulia", "hol_calabria_s"] },
-    { id: "hol_apulia",   name: "プーリア",      terrain: "coast",     neighbors: ["hol_campania", "hol_calabria_s"] },
-    { id: "hol_calabria_s",name:"カラブリア",    terrain: "mountains", neighbors: ["hol_lazio", "hol_campania", "hol_apulia"], straitTo: ["hol_palermo"] },
+    // ---- 北イタリア（ピエモンテ＋リグーリア統合） ----
+    { id: "hol_lombardy",   name: "ロンバルディア", terrain: "plains",    neighbors: ["hol_piedmont", "hol_veneto", "hol_emilia", "neu_alps"] },
+    { id: "hol_piedmont",   name: "ピエモンテ",     terrain: "mountains", neighbors: ["hol_lombardy", "hol_emilia", "hol_tuscany_n", "kgd_dauphine", "kgd_provence", "neu_alps"], straitTo: ["hol_sardinia"] },
+
+    // ---- 中部イタリア ----
+    { id: "hol_veneto",     name: "ヴェネト",       terrain: "coast",     neighbors: ["hol_lombardy", "hol_emilia", "hol_capital", "neu_adriatic"] },
+    { id: "hol_emilia",     name: "エミリア",       terrain: "plains",    neighbors: ["hol_lombardy", "hol_veneto", "hol_piedmont", "hol_tuscany_n", "hol_lazio"] },
+    { id: "hol_tuscany_n",  name: "トスカーナ",     terrain: "plains",    neighbors: ["hol_piedmont", "hol_emilia", "hol_lazio"] },
+    { id: "hol_lazio",      name: "ラツィオ",       terrain: "coast",     neighbors: ["hol_tuscany_n", "hol_emilia", "hol_calabria_s"] },
+
+    // ---- 南イタリア（カンパーニャ統合） ----
+    { id: "hol_apulia",     name: "プーリア",       terrain: "coast",     neighbors: ["hol_calabria_s"] },
+    { id: "hol_calabria_s", name: "カラブリア",     terrain: "mountains", neighbors: ["hol_lazio", "hol_apulia"], straitTo: ["hol_palermo"] },
 
     // ---- 島嶼 ----
-    { id: "hol_sardinia", name: "サルデーニャ",  terrain: "coast",     neighbors: [], straitTo: ["neu_corsica", "hol_liguria", "dch_morocco_n"] },
-    { id: "hol_palermo",  name: "シチリア",      terrain: "coast",     neighbors: [], straitTo: ["hol_calabria_s", "dch_morocco_n", "dch_tunisia", "dch_tripolitania"] },
+    { id: "hol_sardinia",   name: "サルデーニャ",   terrain: "coast",     neighbors: [], straitTo: ["hol_piedmont", "dch_morocco_n", "kgd_provence"] },
+    { id: "hol_palermo",    name: "シチリア",       terrain: "coast",     neighbors: [], straitTo: ["hol_calabria_s", "dch_morocco_n", "dch_tunisia", "dch_tripolitania"] },
 
-    // ---- 旧中立 (v7 で hol に編入) ----
-    { id: "neu_adriatic", name: "アドリア海岸",  terrain: "coast",     neighbors: ["rep_venice", "hol_veneto", "dch_croatia", "dch_ragusa"], straitTo: ["dch_albania"] },
+    // ---- 旧中立 ----
+    { id: "neu_adriatic",   name: "アドリア海岸",   terrain: "coast",     neighbors: ["rep_venice", "hol_veneto", "dch_croatia"] },
+
+    // ---- コーカサス・北イラン ----
+    { id: "hol_georgia",       name: "ジョージア",        terrain: "mountains", neighbors: ["emp_austria", "emp_austria_e", "emp_dagestan", "hol_transcaucasia", "dch_anatolia_n"] },
+    { id: "hol_transcaucasia", name: "東コーカサス諸国",  terrain: "mountains", neighbors: ["emp_dagestan", "hol_georgia", "dch_anatolia_n", "dch_anatolia_e", "hol_iran_n"] },
+    { id: "hol_iran_n",        name: "北イラン",          terrain: "mountains", neighbors: ["hol_transcaucasia", "dch_anatolia_e"] },
   ],
 };
