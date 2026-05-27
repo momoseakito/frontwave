@@ -19,6 +19,7 @@ import { BorderLayer } from "./BorderLayer.js";
 import { HighlightLayer } from "./HighlightLayer.js";
 import { AttackLayer } from "./AttackLayer.js";
 import { ArrowLayer } from "./ArrowLayer.js";
+import { TroopLabelLayer } from "./TroopLabelLayer.js";
 
 const SEA_COLOR = 0x0f172a;
 
@@ -42,6 +43,7 @@ export class PixiMapApp {
     this._highlight = null;
     this._attack = null;
     this._arrows = null;
+    this._troopLabels = null;
     this._initPromise = null;
     this._resolution = options.resolution ?? (window.devicePixelRatio || 1);
   }
@@ -71,11 +73,13 @@ export class PixiMapApp {
       this._highlight = new HighlightLayer(PIXI, this.data);
       this._attack = new AttackLayer(PIXI, this.data);
       this._arrows = new ArrowLayer(PIXI, this.data);
+      this._troopLabels = new TroopLabelLayer(PIXI, this.data, this.state);
       this._world.addChild(this._provinces.container);
       this._world.addChild(this._borders.container);
       this._world.addChild(this._highlight.container);
       this._world.addChild(this._attack.container);
       this._world.addChild(this._arrows.container);
+      // TroopLabelLayer uses HTML <span> elements, not PIXI objects — no addChild needed.
 
       this._provinces.refreshFills();
       this._syncWorld();
@@ -161,6 +165,8 @@ export class PixiMapApp {
     this._highlight.setSelected(this.state.selectedProvince);
     this._attack.syncToScale(c.scale);
     this._arrows.syncToScale(c.scale);
+    this._troopLabels?.syncToCamera(c);
+    this._troopLabels?.refresh();
   }
 
   _render() {
