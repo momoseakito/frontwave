@@ -1,0 +1,21 @@
+{
+  "name": "frontwave-app",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "frontwave-engine": "workspace:*",
+    "pixi.js": "^8.0.0",
+    "d3-geo": "^3.1.0",
+    "svelte": "^5.0.0"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^4.0.0",
+    "vite": "^6.0.0"
+  }
+}

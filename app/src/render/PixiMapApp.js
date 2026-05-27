@@ -14,6 +14,7 @@
 // No raster fallback. With ~100 polygons on the GPU we hold 60fps during
 // pan/zoom without any quality switch.
 
+import * as PIXI from 'pixi.js';
 import { ProvinceLayer } from "./ProvinceLayer.js";
 import { BorderLayer } from "./BorderLayer.js";
 import { HighlightLayer } from "./HighlightLayer.js";
@@ -24,8 +25,7 @@ import { TroopLabelLayer } from "./TroopLabelLayer.js";
 const SEA_COLOR = 0x0f172a;
 
 export class PixiMapApp {
-  constructor(PIXI, canvas, camera, mapData, gameState, options = {}) {
-    this.PIXI = PIXI;
+  constructor(canvas, camera, mapData, gameState, options = {}) {
     this.canvas = canvas;
     this.camera = camera;
     this.data = mapData;
@@ -46,12 +46,12 @@ export class PixiMapApp {
     this._troopLabels = null;
     this._initPromise = null;
     this._resolution = options.resolution ?? (window.devicePixelRatio || 1);
+    this._troopLabelContainer = options.troopLabelContainer ?? null;
   }
 
   async init() {
     if (this._initPromise) return this._initPromise;
     this._initPromise = (async () => {
-      const PIXI = this.PIXI;
       this._app = new PIXI.Application();
       await this._app.init({
         canvas: this.canvas,
@@ -73,7 +73,9 @@ export class PixiMapApp {
       this._highlight = new HighlightLayer(PIXI, this.data);
       this._attack = new AttackLayer(PIXI, this.data);
       this._arrows = new ArrowLayer(PIXI, this.data);
-      this._troopLabels = new TroopLabelLayer(PIXI, this.data, this.state);
+      this._troopLabels = new TroopLabelLayer(PIXI, this.data, this.state, {
+        troopLabelContainer: this._troopLabelContainer,
+      });
       this._world.addChild(this._provinces.container);
       this._world.addChild(this._borders.container);
       this._world.addChild(this._highlight.container);

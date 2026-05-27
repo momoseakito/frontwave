@@ -1,0 +1,26 @@
+{
+  "dch": {
+    "name": "公国",
+    "color": "#6b1f6b"
+  },
+  "emp": {
+    "name": "帝国",
+    "color": "#f4d03f"
+  },
+  "fed": {
+    "name": "連邦",
+    "color": "#8b1a1a"
+  },
+  "hol": {
+    "name": "聖王国",
+    "color": "#c9a227"
+  },
+  "kgd": {
+    "name": "王国",
+    "color": "#1f4d8a"
+  },
+  "rep": {
+    "name": "共和国",
+    "color": "#6b8e23"
+  }
+}

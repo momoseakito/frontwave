@@ -5,7 +5,9 @@
   "scripts": {
     "build": "pnpm --filter frontwave-engine build",
     "dev": "pnpm --filter frontwave-engine dev",
-    "typecheck": "pnpm --filter frontwave-engine typecheck"
+    "typecheck": "pnpm --filter frontwave-engine typecheck",
+    "dev:app": "pnpm --filter frontwave-app dev",
+    "build:app": "pnpm --filter frontwave-engine build && pnpm --filter frontwave-app build"
   },
   "devDependencies": {
     "typescript": "^5.0.0"

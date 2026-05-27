@@ -18,7 +18,7 @@ import {
   NATION_DEF_MAP,
   NATIONS_DEF,
   UPGRADE_COSTS,
-} from "../packages/game-engine/dist/index.js";
+} from "frontwave-engine";
 
 let nationDefs = {};
 
@@ -29,7 +29,7 @@ export async function loadNationDefs(url = "../assets/nation-defs.json") {
   return nationDefs;
 }
 
-export class GameState {
+export class GameBridge {
   constructor(playerNationId = "emp") {
     this.engine = createInitialState(playerNationId);
     // Lookups keyed by the numeric feature.id assigned by MapData.

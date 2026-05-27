@@ -5,13 +5,13 @@
 const MIN_SCREEN_SIZE = 18; // hide label if province bbox screen-size < this px
 
 export class TroopLabelLayer {
-  constructor(_PIXI, mapData, gameState) {
+  constructor(_PIXI, mapData, gameState, options = {}) {
     this.data = mapData;
     this.state = gameState;
     // Dummy container so PixiMapApp doesn't need to special-case this layer.
     this.container = { visible: false };
 
-    this._el = document.getElementById("troop-labels");
+    this._el = options.troopLabelContainer ?? document.getElementById("troop-labels");
     // featureId -> { span, worldX, worldY, bboxW, bboxH }
     this._entries = new Map();
 

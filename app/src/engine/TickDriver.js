@@ -1,9 +1,4 @@
-// Drives the engine's pure gameTick() on a fixed 100ms cadence (TICK_MS).
-// Each tick advances engine.elapsedSeconds by DELTA_SECONDS (=0.1s). When
-// ownership changes we tell the renderer to repaint owner colors; otherwise
-// the existing rAF + per-tick HUD callback handle reflection.
-
-import { gameTick, TICK_MS } from "../packages/game-engine/dist/index.js";
+import { gameTick, TICK_MS } from 'frontwave-engine';
 
 export class TickDriver {
   constructor(gameState, app, callbacks = {}) {
@@ -41,9 +36,6 @@ export class TickDriver {
   _step() {
     if (this._paused) return;
 
-    // Run _speed sub-ticks per interval to implement speed multiplier.
-    // Owner-change detection is aggregated across all sub-ticks to avoid
-    // redundant repaints.
     let ownerChanged = false;
     let lastNext = this.state.engine;
     let lastPrev = this.state.engine;
