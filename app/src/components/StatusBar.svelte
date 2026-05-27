@@ -25,12 +25,10 @@
     <button class="speed-btn" class:active={!paused && speed === 4} data-speed="4" title="4倍速 [3]"
       on:click={() => setSpeed(4)}>4×</button>
   </div>
-</div>
-
-<div id="hud">
-  {paused ? '⏸ PAUSE' : `▶ ${speed}×`}
-  &nbsp;|&nbsp;
-  {fmt(elapsed)}
-  &nbsp;|&nbsp;
-  💰 {gold}g
+  <div id="hud-inline">
+    <span class="hud-sep">|</span>
+    <span class="hud-item">{fmt(elapsed)}</span>
+    <span class="hud-sep">|</span>
+    <span class="hud-item hud-gold">💰 {gold}g</span>
+  </div>
 </div>

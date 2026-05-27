@@ -18,7 +18,15 @@ import {
   NATION_DEF_MAP,
   NATIONS_DEF,
   UPGRADE_COSTS,
+  validateNeighborGraph,
 } from "frontwave-engine";
+
+{
+  const neighborErrors = validateNeighborGraph();
+  if (neighborErrors.length > 0) {
+    console.error("[NeighborGraph] 隣接グラフ整合性エラー:", neighborErrors);
+  }
+}
 
 let nationDefs = {};
 
@@ -79,6 +87,38 @@ export class GameBridge {
   getStateDef(numericId) {
     const sid = this.featureIdToStateId.get(numericId);
     return sid ? STATE_DEF_MAP[sid] ?? null : null;
+  }
+
+  // Returns the stateIds of all neighbors for a given stateId string.
+  getNeighborStateIds(stateId) {
+    const def = STATE_DEF_MAP[stateId];
+    return def?.neighbors ?? [];
+  }
+
+  // Returns the featureIds of all neighboring states for a given feature.
+  getNeighborFeatureIds(featureId) {
+    const sid = this.featureIdToStateId.get(featureId);
+    if (!sid) return [];
+    const def = STATE_DEF_MAP[sid];
+    if (!def?.neighbors) return [];
+    const result = [];
+    for (const neighborSid of def.neighbors) {
+      const fid = this.stateIdToFeatureId.get(neighborSid);
+      if (fid != null) result.push(fid);
+    }
+    return result;
+  }
+
+  // Returns true if the player can legally attack the given target feature.
+  canAttack(targetFeatureId) {
+    const me = this.engine.playerNationId;
+    const targetSid = this.featureIdToStateId.get(targetFeatureId);
+    if (!targetSid) return false;
+    const target = this.engine.states[targetSid];
+    if (!target || target.ownerId === me) return false;
+    // Mirror the engine's executeAttack guard: known nations require war status.
+    const status = getRelationStatus(this.engine, me, target.ownerId);
+    return status === 'war';
   }
 
   // Replace the engine snapshot wholesale. Callers (the tick driver) supply the

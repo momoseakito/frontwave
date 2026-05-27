@@ -2,8 +2,17 @@
 // 1 = pan, 2 = pinch. The Camera emits change events that PixiMapApp listens
 // to, so panBy/zoomAt automatically mark the app dirty — we only need to
 // trigger a synchronous draw inside pointermove to avoid the one-frame rAF lag.
+//
+// Long-press attack gesture:
+//   pointerdown → 300 ms timer fires → onLongPress(rec)
+//   pointermove (while long-press active) → onDrag(rec)   [no pan]
+//   pointerup                             → onDragEnd(rec)
+// Moving more than LONG_PRESS_MOVE_CANCEL_PX before the timer fires cancels
+// the gesture and falls back to normal pan behaviour.
 
 const CLICK_MOVE_THRESHOLD_PX = 5;
+const LONG_PRESS_MS = 300;
+const LONG_PRESS_MOVE_CANCEL_PX = 8;
 
 export class InputController {
   constructor(canvas, camera, app, hitTester, callbacks) {
@@ -14,6 +23,9 @@ export class InputController {
     this.onHover = callbacks.onHover ?? (() => {});
     this.onClick = callbacks.onClick ?? (() => {});
     this.onRightClick = callbacks.onRightClick ?? (() => {});
+    this.onLongPress = callbacks.onLongPress ?? (() => {});
+    this.onDrag = callbacks.onDrag ?? (() => {});
+    this.onDragEnd = callbacks.onDragEnd ?? (() => {});
     this.onTick = callbacks.onTick ?? (() => {});
 
     this.activePointers = new Map();   // pointerId -> {x, y}
@@ -21,6 +33,10 @@ export class InputController {
     this.lastPinchMid = null;
     this.downAt = null;                // {x, y, moved: number} for click detection
     this.hoverPending = null;
+
+    this._longPressTimer = null;
+    this._isLongPress = false;         // true after long-press confirmed
+    this._longPressUsed = false;       // suppresses the subsequent click event
 
     this._loop = this._loop.bind(this);
     this._rafId = 0;
@@ -37,14 +53,44 @@ export class InputController {
     this._rafId = requestAnimationFrame(this._loop);
   }
 
+  _clearLongPress() {
+    if (this._longPressTimer) {
+      clearTimeout(this._longPressTimer);
+      this._longPressTimer = null;
+    }
+  }
+
+  _pickWorld(clientX, clientY) {
+    const rect = this.canvas.getBoundingClientRect();
+    const { x, y } = this.camera.screenToWorld(clientX - rect.left, clientY - rect.top);
+    return this.hitTester.pick(x, y);
+  }
+
   _bind() {
     const c = this.canvas;
 
     c.addEventListener("pointerdown", (e) => {
       c.setPointerCapture(e.pointerId);
       this.activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      if (this.activePointers.size === 2) this._initPinch();
+      if (this.activePointers.size === 2) {
+        this._initPinch();
+        this._clearLongPress();   // two-finger gesture cancels long-press
+      }
       this.downAt = { x: e.clientX, y: e.clientY, moved: 0 };
+      this._isLongPress = false;
+      this._longPressUsed = false;
+
+      // Start long-press timer only for single-pointer down.
+      this._clearLongPress();
+      if (this.activePointers.size === 1) {
+        const rec = this._pickWorld(e.clientX, e.clientY);
+        this._longPressTimer = setTimeout(() => {
+          this._longPressTimer = null;
+          this._isLongPress = true;
+          this._longPressUsed = true;
+          this.onLongPress(rec);
+        }, LONG_PRESS_MS);
+      }
       this._kick();
     });
 
@@ -63,6 +109,20 @@ export class InputController {
       this.activePointers.set(e.pointerId, cur);
       if (this.downAt) this.downAt.moved += Math.abs(dx) + Math.abs(dy);
 
+      // Cancel long-press if the pointer moved too much before the timer fired.
+      if (this._longPressTimer && this.downAt &&
+          this.downAt.moved > LONG_PRESS_MOVE_CANCEL_PX) {
+        this._clearLongPress();
+      }
+
+      // While long-press is active: route to onDrag instead of panning.
+      if (this._isLongPress && this.activePointers.size === 1) {
+        const rec = this._pickWorld(e.clientX, e.clientY);
+        this.onDrag(rec);
+        this.app.draw();
+        return;
+      }
+
       if (this.activePointers.size === 1) {
         this.camera.panBy(dx, dy);
       } else if (this.activePointers.size === 2) {
@@ -74,6 +134,13 @@ export class InputController {
     });
 
     const release = (e) => {
+      if (this._isLongPress) {
+        const rec = this._pickWorld(e.clientX, e.clientY);
+        this.onDragEnd(rec);
+        this._isLongPress = false;
+      }
+      this._clearLongPress();
+
       this.activePointers.delete(e.pointerId);
       if (this.activePointers.size < 2) {
         this.lastPinchDist = 0;
@@ -96,6 +163,12 @@ export class InputController {
     }, { passive: false });
 
     c.addEventListener("click", (e) => {
+      // Suppress click that follows a completed long-press gesture.
+      if (this._longPressUsed) {
+        this._longPressUsed = false;
+        this.downAt = null;
+        return;
+      }
       // Only treat as click if the pointer didn't move much between down and up.
       if (this.downAt && this.downAt.moved > CLICK_MOVE_THRESHOLD_PX) {
         this.downAt = null;
@@ -114,7 +187,7 @@ export class InputController {
     });
 
     c.addEventListener("contextmenu", (e) => {
-      // Suppress the browser menu so right-click is available as a game action.
+      // Suppress the browser menu; right-click attack is handled via long-press now.
       e.preventDefault();
       const rect = c.getBoundingClientRect();
       const { x, y } = this.camera.screenToWorld(e.clientX - rect.left, e.clientY - rect.top);

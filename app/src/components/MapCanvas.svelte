@@ -89,15 +89,76 @@
     get(pixiAppRef)?.requestFrame();
   }
 
-  function handleRightClick(targetRec) {
-    if (!targetRec) return;
-    const sourceId = get(selectedProvinceId);
-    if (sourceId == null) return;
-    const ok = bridge.tryAttack(sourceId, targetRec.id);
-    if (ok) {
-      notifyEngineUpdate(bridge);
-      get(pixiAppRef)?.invalidateOwners();
+  // ---- Long-press attack gesture state ----
+  let attackSourceId = null;   // featureId of the province being attacked from
+  let neighborIds = [];        // featureIds of attack-eligible neighbors
+  let dragTargetId = null;     // featureId currently hovered during drag
+
+  function handleLongPress(rec) {
+    if (!rec) return;
+    if (bridge.getOwner(rec.id) !== bridge.getPlayerNationId()) return;
+    attackSourceId = rec.id;
+    const playerNationId = bridge.getPlayerNationId();
+    neighborIds = bridge.getNeighborFeatureIds(rec.id)
+      .filter(fid => bridge.getOwner(fid) !== playerNationId && bridge.canAttack(fid));
+    dragTargetId = null;
+    get(pixiAppRef)?.setNeighborHighlights(neighborIds);
+    get(pixiAppRef)?.clearPreviewArrow();
+  }
+
+  function handleDrag(rec) {
+    if (!attackSourceId) return;
+    if (!rec || !neighborIds.includes(rec.id)) {
+      if (dragTargetId !== null) {
+        dragTargetId = null;
+        get(pixiAppRef)?.clearPreviewArrow();
+      }
+      return;
     }
+    if (dragTargetId === rec.id) return;
+    dragTargetId = rec.id;
+    const color = hexStringToNumber(bridge.getCountryColorHex(bridge.getPlayerNationId()));
+    get(pixiAppRef)?.setPreviewArrow(attackSourceId, dragTargetId, color);
+  }
+
+  function handleDragEnd(rec) {
+    const targetId = dragTargetId ?? (rec && neighborIds.includes(rec.id) ? rec.id : null);
+    if (attackSourceId && targetId) {
+      const ok = bridge.tryAttack(attackSourceId, targetId);
+      if (ok) {
+        notifyEngineUpdate(bridge);
+        get(pixiAppRef)?.invalidateOwners();
+        _syncArrowsFromEngine();
+      } else {
+        get(pixiAppRef)?.clearPreviewArrow();
+      }
+    }
+    _clearLongPressUI();
+  }
+
+  function _syncArrowsFromEngine() {
+    const app = get(pixiAppRef);
+    if (!app) return;
+    const arrows = [];
+    for (const atk of bridge.engine.ongoingAttacks) {
+      const sFid = bridge.stateIdToFeatureId.get(atk.sourceStateId);
+      const tFid = bridge.stateIdToFeatureId.get(atk.targetStateId);
+      if (sFid == null || tFid == null) continue;
+      arrows.push({
+        sourceFeatureId: sFid,
+        targetFeatureId: tFid,
+        color: hexStringToNumber(bridge.getCountryColorHex(atk.attackerId)),
+      });
+    }
+    app.setArrows(arrows);
+    app.clearPreviewArrow();
+  }
+
+  function _clearLongPressUI() {
+    attackSourceId = null;
+    neighborIds = [];
+    dragTargetId = null;
+    get(pixiAppRef)?.setNeighborHighlights([]);
   }
 
   onMount(async () => {
@@ -119,7 +180,9 @@
     new InputController(canvasEl, camera, pixiApp, hitTester, {
       onHover: handleHover,
       onClick: handleClick,
-      onRightClick: handleRightClick,
+      onLongPress: handleLongPress,
+      onDrag: handleDrag,
+      onDragEnd: handleDragEnd,
       onTick: () => {},
     });
 
@@ -139,13 +202,18 @@
           const sFid = bridge.stateIdToFeatureId.get(atk.sourceStateId);
           const tFid = bridge.stateIdToFeatureId.get(atk.targetStateId);
           if (sFid == null || tFid == null) continue;
-          arrows.push({
+arrows.push({
             sourceFeatureId: sFid,
             targetFeatureId: tFid,
             color: hexStringToNumber(bridge.getCountryColorHex(atk.attackerId)),
           });
         }
         pixiApp.setArrows(arrows);
+
+        // Clear the preview arrow once the attack it represents has resolved.
+        if (next.ongoingAttacks.length === 0) {
+          pixiApp.clearPreviewArrow();
+        }
 
         notifyEngineUpdate(bridge);
 

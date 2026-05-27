@@ -21,7 +21,7 @@
 </script>
 
 {#if info}
-  <div id="info-panel" style="display:block;">
+  <div id="info-panel">
     <h3>選択中の州</h3>
     <div id="info-name">{info.name}</div>
     <div id="info-country" style="color:{get(gameBridge)?.getCountryColorHex(info.ownerId) ?? '#fff'}">

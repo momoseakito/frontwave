@@ -96,6 +96,10 @@ function aiAttackBase(game: GameState, nationId: string, ratio: number): GameSta
     const alreadyAttacking = attacks.some((a) => a.targetStateId === bestTarget!.id);
     if (alreadyAttacking) continue;
 
+    if (!stateDef.neighbors.includes(bestTarget.id)) {
+      continue;
+    }
+
     const newAttack: OngoingAttack = {
       attackerId: nationId,
       targetStateId: bestTarget.id,

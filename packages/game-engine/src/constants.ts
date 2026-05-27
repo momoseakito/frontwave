@@ -4,8 +4,8 @@ export const TICK_MS = 100;
 export const DELTA_SECONDS = TICK_MS / 1000;
 
 // 戦闘係数（ランチェスターの法則）
-export const ATTACKER_COEFFICIENT = 0.1;
-export const DEFENDER_COEFFICIENT = 1.3; // 1.1〜1.5 の中央値（バランス調整予定）
+export const ATTACKER_COEFFICIENT = 0.6;
+export const DEFENDER_COEFFICIENT = 0.8;
 export const CAPITAL_TROOP_MULTIPLIER = 2.0; // 首都攻略に必要な敵兵力比率
 
 // 地形防衛倍率
@@ -18,8 +18,8 @@ export const TERRAIN_DEFENSE: Record<Terrain, number> = {
 };
 
 // 兵力生産テーブル（Lv 0〜5）
-export const TROOP_REGEN_BY_LEVEL = [1, 2, 4, 7, 11, 16] as const;
-export const TROOP_MAX_BY_LEVEL = [1000, 1800, 2800, 4000, 5500, 7500] as const;
+export const TROOP_REGEN_BY_LEVEL = [0.5, 1, 2, 3.5, 5.5, 8] as const;
+export const TROOP_MAX_BY_LEVEL = [500, 900, 1400, 2000, 2750, 3750] as const;
 export const CAPITAL_BONUS_MULTIPLIER = 1.5; // 首都の生産・上限 +50%
 
 // ゴールド収入テーブル（Lv 0〜5）
@@ -50,14 +50,14 @@ export const ALLIANCE_BREAK_ATTACK_MULT = 0.7; // 攻撃力 -30%
 // その他
 export const INITIAL_FUNDS = 200;
 export const AI_TICK_INTERVAL = 2;
-export const PEACE_PERIOD_SECONDS = 30;
+export const PEACE_PERIOD_SECONDS = 0;
 export const ALLIANCE_PROPOSAL_TTL = 20;
 export const AI_WAR_DECISION_INTERVAL = 8;
 
 export const INITIAL_TROOPS_BY_TERRAIN: Record<Terrain, number> = {
-  plains: 200,
-  mountains: 300,
-  coast: 150,
-  forest: 250,
-  capital: 500,
+  plains: 100,
+  mountains: 150,
+  coast: 75,
+  forest: 125,
+  capital: 250,
 };

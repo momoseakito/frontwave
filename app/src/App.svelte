@@ -54,8 +54,10 @@
       <MapCanvas {mapData} {bridge} />
     {/if}
     <StatusBar />
-    <ProvincePanel />
-    <DiplomacyPanel />
+    <div id="right-sidebar">
+      <DiplomacyPanel />
+      <ProvincePanel />
+    </div>
     <CardPanel />
     <Tooltip />
     {#if $gamePhase === 'finished'}

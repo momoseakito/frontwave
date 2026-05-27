@@ -20,6 +20,7 @@ import { BorderLayer } from "./BorderLayer.js";
 import { HighlightLayer } from "./HighlightLayer.js";
 import { AttackLayer } from "./AttackLayer.js";
 import { ArrowLayer } from "./ArrowLayer.js";
+import { NeighborHighlightLayer } from "./NeighborHighlightLayer.js";
 import { TroopLabelLayer } from "./TroopLabelLayer.js";
 
 const SEA_COLOR = 0x0f172a;
@@ -43,6 +44,8 @@ export class PixiMapApp {
     this._highlight = null;
     this._attack = null;
     this._arrows = null;
+    this._neighborHighlight = null;
+    this._previewArrow = null;
     this._troopLabels = null;
     this._initPromise = null;
     this._resolution = options.resolution ?? (window.devicePixelRatio || 1);
@@ -73,6 +76,8 @@ export class PixiMapApp {
       this._highlight = new HighlightLayer(PIXI, this.data);
       this._attack = new AttackLayer(PIXI, this.data);
       this._arrows = new ArrowLayer(PIXI, this.data);
+      this._neighborHighlight = new NeighborHighlightLayer(PIXI, this.data);
+      this._previewArrow = new ArrowLayer(PIXI, this.data);
       this._troopLabels = new TroopLabelLayer(PIXI, this.data, this.state, {
         troopLabelContainer: this._troopLabelContainer,
       });
@@ -80,7 +85,9 @@ export class PixiMapApp {
       this._world.addChild(this._borders.container);
       this._world.addChild(this._highlight.container);
       this._world.addChild(this._attack.container);
+      this._world.addChild(this._neighborHighlight.container);
       this._world.addChild(this._arrows.container);
+      this._world.addChild(this._previewArrow.container);
       // TroopLabelLayer uses HTML <span> elements, not PIXI objects — no addChild needed.
 
       this._provinces.refreshFills();
@@ -134,6 +141,33 @@ export class PixiMapApp {
     return changed;
   }
 
+  // Highlight attack-eligible neighbors during a long-press gesture.
+  setNeighborHighlights(ids) {
+    const changed = this._neighborHighlight?.setNeighbors(ids) ?? false;
+    if (changed) {
+      this.dirty = true;
+      this._kick?.();
+    }
+    return changed;
+  }
+
+  // Show a single preview arrow during drag-to-attack. Pass null ids to clear.
+  setPreviewArrow(srcId, tgtId, color) {
+    const items = (srcId != null && tgtId != null)
+      ? [{ sourceFeatureId: srcId, targetFeatureId: tgtId, color }]
+      : [];
+    const changed = this._previewArrow?.setArrows(items) ?? false;
+    if (changed) {
+      this.dirty = true;
+      this._kick?.();
+    }
+    return changed;
+  }
+
+  clearPreviewArrow() {
+    this.setPreviewArrow(null, null, 0);
+  }
+
   // When attacks are in progress we keep ticking frames for the pulse anim.
   hasAttackAnimation() {
     return this._attack?.hasActive() ?? false;
@@ -166,7 +200,9 @@ export class PixiMapApp {
     this._highlight.syncToScale(c.scale);
     this._highlight.setSelected(this.state.selectedProvince);
     this._attack.syncToScale(c.scale);
+    this._neighborHighlight.syncToScale(c.scale);
     this._arrows.syncToScale(c.scale);
+    this._previewArrow.syncToScale(c.scale);
     this._troopLabels?.syncToCamera(c);
     this._troopLabels?.refresh();
   }

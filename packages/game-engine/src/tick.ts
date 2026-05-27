@@ -31,6 +31,13 @@ function troopRegenTick(game: GameState, delta: number): GameState {
   const states = { ...game.states };
   const now = game.elapsedSeconds;
 
+  // 交戦中の州はリジェネしない
+  const combatStateIds = new Set<string>();
+  for (const atk of game.ongoingAttacks) {
+    combatStateIds.add(atk.sourceStateId);
+    combatStateIds.add(atk.targetStateId);
+  }
+
   const mobilizationEffect = game.activeEffects.find(
     (e) => e.type === "mobilization" && e.nationId === game.playerNationId && e.expiresAt > now
   );
@@ -42,6 +49,8 @@ function troopRegenTick(game: GameState, delta: number): GameState {
   for (const stateId of Object.keys(states)) {
     const s = states[stateId];
     if (!s) continue;
+
+    if (combatStateIds.has(stateId)) continue;
 
     const supplycut = game.activeEffects.find(
       (e) => e.type === "supply_cut" && e.stateId === stateId && e.expiresAt > now

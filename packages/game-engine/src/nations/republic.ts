@@ -3,23 +3,24 @@ import type { NationConfig } from "../map.js";
 // 共和国 (rep): イタリア諸都市モデル 経済特化 11州 (本土10 + 旧中立1: アルプス)
 export const republic: NationConfig = {
   id: "rep",
-  name: "共和国",
-  color: "#6b8e23",
-  capitalStateId: "rep_capital",
+  name: "イタリア共和国",
+  color: "#5a8a3c",
+  capitalStateId: "hol_lazio",
   specialty: "economy",
   states: [
-    { id: "rep_capital",  name: "共和国首都",    terrain: "capital",   capitalOf: "rep", neighbors: ["rep_lombardy", "rep_venice", "rep_tuscany", "rep_piedmont"] },
-    { id: "rep_piedmont", name: "ピエモンテ",    terrain: "mountains", neighbors: ["rep_capital", "rep_lombardy", "rep_genoa", "emp_bavaria", "kgd_dauphine", "neu_alps"] },
-    { id: "rep_lombardy", name: "ロンバルディア", terrain: "plains",   neighbors: ["rep_capital", "rep_piedmont", "rep_venice", "emp_carinthia_e", "neu_alps"] },
-    { id: "rep_venice",   name: "ヴェネツィア",  terrain: "coast",    neighbors: ["rep_capital", "rep_lombardy", "rep_romagna", "dch_croatia", "neu_adriatic"] },
-    { id: "rep_genoa",    name: "ジェノヴァ",    terrain: "coast",    neighbors: ["rep_piedmont", "rep_tuscany"], straitTo: ["neu_corsica"] },
-    { id: "rep_tuscany",  name: "トスカーナ",    terrain: "plains",   neighbors: ["rep_capital", "rep_genoa", "rep_romagna"] },
-    { id: "rep_romagna",  name: "ロマーニャ",    terrain: "plains",   neighbors: ["rep_tuscany", "rep_venice", "rep_naples"] },
-    { id: "rep_naples",   name: "ナポリ",        terrain: "coast",    neighbors: ["rep_romagna", "rep_calabria"], straitTo: ["hol_palermo"] },
-    { id: "rep_calabria", name: "カラブリア",    terrain: "mountains", neighbors: ["rep_naples"], straitTo: ["hol_palermo"] },
-    { id: "rep_friuli",   name: "フリウリ",      terrain: "mountains", neighbors: ["rep_venice", "emp_carinthia_e", "dch_croatia"] },
+    // ---- イタリア半島（hol から移動） ----
+    { id: "hol_lombardy",   name: "ロンバルディア", terrain: "plains",    neighbors: ["hol_capital", "hol_emilia", "hol_lazio", "hol_navarre", "hol_piedmont", "hol_veneto", "neu_bohemia", "neu_bohemia_nw"] },
+    { id: "hol_piedmont",   name: "ピエモンテ",     terrain: "mountains", neighbors: ["hol_lombardy", "hol_navarre", "hol_tuscany_n", "hol_veneto", "neu_alps", "rep_capital", "rep_genoa"], straitTo: ["hol_sardinia"] },
+    { id: "hol_veneto",     name: "ヴェネト",       terrain: "coast",     neighbors: ["hol_calabria_s", "hol_emilia", "hol_lombardy", "hol_piedmont", "rep_capital"] },
+    { id: "hol_emilia",     name: "エミリア",       terrain: "plains",    neighbors: ["hol_calabria_s", "hol_lombardy", "hol_veneto", "neu_bohemia"] },
+    { id: "hol_tuscany_n",  name: "トスカーナ",     terrain: "plains",    neighbors: ["hol_navarre", "hol_piedmont", "kgd_lorraine", "neu_alps", "rep_genoa"] },
+    { id: "hol_lazio",      name: "ラツィオ",       terrain: "capital",   capitalOf: "rep", neighbors: ["hol_apulia", "hol_capital", "hol_lombardy", "hol_navarre", "neu_rhine"] },
+    { id: "hol_apulia",     name: "プーリア",       terrain: "coast",     neighbors: ["fed_denmark", "hol_capital", "hol_lazio", "neu_silesia"] },
+    { id: "hol_calabria_s", name: "カラブリア",     terrain: "mountains", neighbors: ["hol_emilia", "hol_veneto", "neu_bohemia", "neu_danube", "rep_capital"], straitTo: ["hol_palermo"] },
+    { id: "hol_palermo",    name: "シチリア",       terrain: "coast",     neighbors: [], straitTo: ["hol_calabria_s", "dch_morocco_n", "dch_tunisia", "dch_tripolitania"] },
+    { id: "hol_sardinia",   name: "サルデーニャ",   terrain: "coast",     neighbors: [], straitTo: ["hol_piedmont", "dch_morocco_n", "kgd_provence"] },
 
     // ---- 旧中立 (v7 で rep に編入) ----
-    { id: "neu_alps",     name: "アルプス山中",  terrain: "mountains", neighbors: ["emp_swabia_s", "emp_bavaria", "emp_austria", "rep_piedmont", "rep_lombardy", "hol_aragon", "hol_piedmont", "hol_lombardy", "kgd_dauphine"] },
+    { id: "neu_alps",     name: "アルプス山中",  terrain: "mountains", neighbors: ["hol_piedmont", "hol_tuscany_n", "kgd_burgundy", "kgd_dauphine", "kgd_lorraine", "rep_genoa", "rep_lombardy", "rep_piedmont", "rep_venice"] },
   ],
 };

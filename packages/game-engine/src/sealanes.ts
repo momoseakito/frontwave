@@ -9,10 +9,8 @@ export interface StraitDefinition {
 // 5本の海峡ルート
 export const STRAITS: StraitDefinition[] = [
   { fromStateId: "fed_denmark",    toStateId: "emp_holstein",   name: "デンマーク海峡" },
-  { fromStateId: "fed_denmark",    toStateId: "emp_pomerania",  name: "バルト海西口" },
-  { fromStateId: "fed_gothland",   toStateId: "emp_pomerania",  name: "バルト海東口" },
   { fromStateId: "hol_calabria_s", toStateId: "hol_palermo",    name: "メッシーナ海峡" },
-  { fromStateId: "kgd_andalusia",  toStateId: "dch_maghreb",    name: "ジブラルタル海峡" },
+  { fromStateId: "kgd_andalusia",  toStateId: "dch_morocco_n",  name: "ジブラルタル海峡" },
 ];
 
 export function getStraitNeighbors(stateId: string): string[] {

@@ -1,26 +1,26 @@
 {
   "dch": {
-    "name": "公国",
+    "name": "オスマン帝国",
     "color": "#6b1f6b"
   },
   "emp": {
-    "name": "帝国",
-    "color": "#f4d03f"
-  },
-  "fed": {
-    "name": "連邦",
+    "name": "ロシア帝国",
     "color": "#8b1a1a"
   },
+  "fed": {
+    "name": "大英帝国",
+    "color": "#b5121b"
+  },
   "hol": {
-    "name": "聖王国",
+    "name": "オーストリア帝国",
     "color": "#c9a227"
   },
   "kgd": {
-    "name": "王国",
-    "color": "#1f4d8a"
+    "name": "フランス王国",
+    "color": "#3a5f9f"
   },
   "rep": {
-    "name": "共和国",
-    "color": "#6b8e23"
+    "name": "イタリア共和国",
+    "color": "#5a8a3c"
   }
 }

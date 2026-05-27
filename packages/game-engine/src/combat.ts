@@ -1,6 +1,7 @@
 import type { GameState, OngoingAttack } from "./game.js";
 import { triggerNationSurrender } from "./game.js";
 import { STATE_DEF_MAP, NATION_DEF_MAP } from "./map.js";
+import { canCrossStrait } from "./sealanes.js";
 import {
   ATTACKER_COEFFICIENT,
   DEFENDER_COEFFICIENT,
@@ -74,6 +75,15 @@ export function applyCombatDelta(
 ): GameState {
   if (game.ongoingAttacks.length === 0) return game;
 
+  const validAttacks = game.ongoingAttacks.filter((atk) => {
+    const sourceDef = STATE_DEF_MAP[atk.sourceStateId];
+    const isAdjacent = sourceDef?.neighbors.includes(atk.targetStateId) ?? false;
+    const isStrait = canCrossStrait(game, atk.attackerId, atk.sourceStateId, atk.targetStateId);
+    return isAdjacent || isStrait;
+  });
+
+  if (validAttacks.length === 0) return { ...game, ongoingAttacks: [] };
+
   let states = { ...game.states };
   const resolvedTargets: string[] = [];
   let updatedEffects = [...game.activeEffects];
@@ -81,7 +91,7 @@ export function applyCombatDelta(
   const escalationPairs: Array<[string, string]> = [];
   const surrenderPairs: Array<[string, string]> = []; // [surrenderedNationId, captorId]
 
-  for (const attack of game.ongoingAttacks) {
+  for (const attack of validAttacks) {
     const { attackerId, targetStateId, sourceStateId } = attack;
     const source = states[sourceStateId];
     const target = states[targetStateId];
@@ -162,7 +172,7 @@ export function applyCombatDelta(
     }
   }
 
-  const remainingAttacks = game.ongoingAttacks.filter(
+  const remainingAttacks = validAttacks.filter(
     (a) => !resolvedTargets.includes(a.targetStateId)
   );
 
